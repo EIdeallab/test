@@ -1,0 +1,5 @@
+{
+    "python.pythonPath": "C:\\OSGeo4W64\\bin\\python3.exe",
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true
+}
