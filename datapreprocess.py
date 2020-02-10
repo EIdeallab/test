@@ -115,7 +115,8 @@ def getFinanceInfoLabelto2DArray(cur, info, date_size, data_size=0, scaler=False
         # 주식 코드별로 없는 데이터가 존재하므로 있을 때까지 반복해서 가져온다.
         while True:
             rnd_num = random.randint(0, len(info) - 1)
-            price = UtilStock.LoadStockFinanceByCode(cur, code.iloc[rnd_num])
+            # price = UtilStock.LoadStockFinanceByCode(cur, code.iloc[rnd_num])
+            price = UtilStock.LoadStockFinanceWeekByCode(cur, code.iloc[rnd_num])
 
             if price.empty == False:
                 break

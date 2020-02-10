@@ -43,6 +43,18 @@ def LoadStockFinanceByCode(cur, StockCode):
     Info = pd.DataFrame(cur.fetchall(), columns =price_col )
     return Info
 
+#특정 주식 코드의 재무재표 포함 반환 함수(주단위), 날짜 오름차순
+def LoadStockFinanceWeekByCode(cur, StockCode):
+    sql = "SEL_STOCK_TRAINING_DATA_WEEK " + StockCode
+    print("sql:", sql)
+    cur.execute(sql)
+    price_col = (
+        'STOCK_CODE', 'AVERAGE', 'HIGHEST', 'LOWEST', 'VOLUME', 'CHANGE_RATIO', 
+        'MARKET_CAP', 'PBR', 'PBR2', 'PDR', 'PER', 'PCR_OP', 'PCR_IV', 'PCR_FI', 
+        'PSR', 'PFR', 'PXR', 'ROE', 'ROA', 'MARKET_RANK', 'DATE')
+    Info = pd.DataFrame(cur.fetchall(), columns =price_col )
+    return Info
+
 #주식 가격 전부 불러오기
 def LoadStockPrice(cur):
     sql = "SELECT * FROM STOCK_PRICE ORDER BY DATE"
