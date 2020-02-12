@@ -159,5 +159,5 @@ if __name__ == "__main__":
     connect = mssql.connect(server=server, user=user, password=password, database=database, charset='UTF8')
     cur = connect.cursor()
     info = utilStock.LoadStockInfo(cur)
-    data, label = datapreprocess.getFinanceInfoLabelto2DArray(cur, info, data_size= sample_size, date_size= date_size, scaler=True)
+    data, label = datapreprocess.getFinanceInfoLabelto2DArray(cur, info, data_size= sample_size, date_size= date_size, scaler=True, unit='WEEK')
     train_Lstm(data,label)

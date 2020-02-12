@@ -11,9 +11,9 @@ def MinMaxScaler(data):
     # noise term prevents the zero division
     return numerator / (denominator + 1e-7)
 
-def getInfoLabelto3DArray(cur, info, date_size, data_size = 0, scaler = False):
+def getInfoLabelto3DArray(cur, info, date_size, data_size = 0, scaler = False, unit = 'DAY'):
 #주의 : list가 아닌 ndarray임
-
+# unit = 'WEEK', 'MONTH', 'DAY'
     rnd = []
     if(data_size == 0):
         data_size = len(info)
@@ -29,7 +29,16 @@ def getInfoLabelto3DArray(cur, info, date_size, data_size = 0, scaler = False):
     code = info['STOCK_CODE']
     for i in range(data_size):
         idx   = rnd[i]
-        price = UtilStock.LoadStockPriceByCode(cur, code.iloc[idx])
+
+        if (unit == 'DAY'):
+            price = utilStock.LoadStockPriceByCode(cur, code.iloc[idx])
+        elif (unit == 'WEEK'):
+            print('Not yet :) ')
+            break
+        elif (unit == 'MONTH'):
+            print('Not yet :) ')
+            break
+
         price.drop('DATE', axis=1, inplace=True) #날짜 제거
         price = price.dropna()  #NONE값 가진 행 제거
         ratio = price['CHANGE_RATIO']
@@ -56,11 +65,11 @@ def getInfoLabelto3DArray(cur, info, date_size, data_size = 0, scaler = False):
 
     return data, label
 
-def getInfoLabelto2DArray(cur, info, date_size, data_size = 0, scaler = False):
+def getInfoLabelto2DArray(cur, info, date_size, data_size = 0, scaler = False, unit = 'DAY'):
 # data : LoadStockInfo 반환값, date_size : 몇 일씩 뭉칠껀지,
 # data_size :주식코드 몇개에 대한 데이터를 만들껀지
 # train list와 label list를 반환
-
+# unit = 'WEEK', 'MONTH', 'DAY'
     rnd = []
     data = []  # train data
     label = []  # label data
@@ -79,7 +88,16 @@ def getInfoLabelto2DArray(cur, info, date_size, data_size = 0, scaler = False):
     code = info['STOCK_CODE']
     for i in range(data_size):
         idx   = rnd[i]
-        price = utilStock.LoadStockPriceByCode(cur, code.iloc[idx])
+
+        if (unit == 'DAY'):
+            price = utilStock.LoadStockPriceByCode(cur, code.iloc[idx])
+        elif (unit == 'WEEK'):
+            print('Not yet :) ')
+            break
+        elif (unit == 'MONTH'):
+            print('Not yet :) ')
+            break
+
         price.drop('DATE', axis=1, inplace=True) #날짜 제거
         price = price.dropna()  #NONE값 가진 행 제거
         ratio = price['CHANGE_RATIO']
@@ -98,10 +116,11 @@ def getInfoLabelto2DArray(cur, info, date_size, data_size = 0, scaler = False):
 
     return np.array(data), np.array(label)
 
-def getFinanceInfoLabelto2DArray(cur, info, date_size, data_size=0, scaler=False):
+def getFinanceInfoLabelto2DArray(cur, info, date_size, data_size=0, scaler=False, unit = 'DAY'):
     # data : LoadStockInfo 반환값, date_size : 몇 일씩 뭉칠껀지,
     # data_size :주식코드 몇개에 대한 데이터를 만들껀지
     # train list와 label list를 반환
+    # unit = 'WEEK', 'MONTH', 'DAY'
 
     data = []  # train data
     label = []  # label data
@@ -115,8 +134,14 @@ def getFinanceInfoLabelto2DArray(cur, info, date_size, data_size=0, scaler=False
         # 주식 코드별로 없는 데이터가 존재하므로 있을 때까지 반복해서 가져온다.
         while True:
             rnd_num = random.randint(0, len(info) - 1)
-            # price = UtilStock.LoadStockFinanceByCode(cur, code.iloc[rnd_num])
-            price = utilStock.LoadStockFinanceWeekByCode(cur, code.iloc[rnd_num])
+
+            if(unit == 'DAY'):
+                price = utilStock.LoadStockFinanceByCode(cur, code.iloc[rnd_num])
+            elif (unit == 'WEEK'):
+                price = utilStock.LoadStockFinanceWeekByCode(cur, code.iloc[rnd_num])
+            elif (unit == 'MONTH'):
+                print('Not yet :) ')
+                break
 
             if price.empty == False:
                 break
@@ -139,8 +164,8 @@ def getFinanceInfoLabelto2DArray(cur, info, date_size, data_size=0, scaler=False
 
     return np.array(data), np.array(label)
 
-def getFinanceInfoLabelto3DArray(cur, info, date_size, data_size=0, scaler=False):
-
+def getFinanceInfoLabelto3DArray(cur, info, date_size, data_size=0, scaler=False, unit = 'DAY'):
+    # unit = 'WEEK', 'MONTH', 'DAY'
     if (data_size == 0):
         data_size = len(info)
 
@@ -150,7 +175,15 @@ def getFinanceInfoLabelto3DArray(cur, info, date_size, data_size=0, scaler=False
         # 주식 코드별로 없는 데이터가 존재하므로 있을 때까지 반복해서 가져온다.
         while True:
             rnd_num = random.randint(0, len(info) - 1)
-            price = utilStock.LoadStockFinanceByCode(cur, code.iloc[rnd_num])
+
+            if(unit == 'DAY'):
+                price = utilStock.LoadStockFinanceByCode(cur, code.iloc[rnd_num])
+            elif (unit == 'WEEK'):
+                price = utilStock.LoadStockFinanceWeekByCode(cur, code.iloc[rnd_num])
+            elif (unit == 'MONTH'):
+                print('Not yet :) ')
+                break
+
             if price.empty == False:
                 break
 
@@ -179,7 +212,9 @@ def getFinanceInfoLabelto3DArray(cur, info, date_size, data_size=0, scaler=False
                 label = np.concatenate([label,_y])
     return data, label
 
-def getFinanceInfoLabelto4DArray(cur, info, date_size, data_size=0, scaler=False):
+def getFinanceInfoLabelto4DArray(cur, info, date_size, data_size=0, scaler=False, unit = 'DAY'):
+    # unit = 'WEEK', 'MONTH', 'DAY'
+
     if (data_size == 0):
         data_size = len(info)
 
@@ -189,7 +224,14 @@ def getFinanceInfoLabelto4DArray(cur, info, date_size, data_size=0, scaler=False
         # 주식 코드별로 없는 데이터가 존재하므로 있을 때까지 반복해서 가져온다.
         while True:
             rnd_num = random.randint(0, len(info) - 1)
-            price = utilStock.LoadStockFinanceByCode(cur, code.iloc[rnd_num])
+
+            if(unit == 'DAY'):
+                price = utilStock.LoadStockFinanceByCode(cur, code.iloc[rnd_num])
+            elif (unit == 'WEEK'):
+                price = utilStock.LoadStockFinanceWeekByCode(cur, code.iloc[rnd_num])
+            elif (unit == 'MONTH'):
+                print('Not yet :) ')
+                break
 
             if price.empty == False:
                 break
@@ -220,7 +262,8 @@ def getFinanceInfoLabelto4DArray(cur, info, date_size, data_size=0, scaler=False
     return data, label
 
 #1DArray수정 필요
-def getInfoLabelto1Dlist(cur, info, data_size = 0, scaler = False):
+def getInfoLabelto1Dlist(cur, info, data_size = 0, scaler = False, unit = 'DAY'):
+    # unit = 'WEEK', 'MONTH', 'DAY'
 
     rnd = []
     data = []  # train data
@@ -240,7 +283,16 @@ def getInfoLabelto1Dlist(cur, info, data_size = 0, scaler = False):
     code = info['STOCK_CODE']
     for i in range(data_size):
         idx   = rnd[i]
-        price = utilStock.LoadStockPriceByCode(cur, code.iloc[idx])
+
+        if (unit == 'DAY'):
+            price = utilStock.LoadStockPriceByCode(cur, code.iloc[rnd_num])
+        elif (unit == 'WEEK'):
+            print('Not yet :) ')
+            break
+        elif (unit == 'MONTH'):
+            print('Not yet :) ')
+            break
+
         price.drop('DATE', axis=1, inplace=True) #날짜 제거
         price = price.dropna()  #NONE값 가진 행 제거
         ratio = price['CHANGE_RATIO']
