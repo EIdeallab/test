@@ -21,6 +21,16 @@ def LoadStockInfo(cur):
 
     return Info
 
+#재무 정보가 있는 StockInfo반환 함수
+def LoadFinanceStockInfo(cur):
+    sql = "SELECT * FROM STOCK_INFO WHERE STOCK_CODE IN (SELECT STOCK_CODE FROM STOCK_TRAINING_SET_WEEK)"
+    print("sql:", sql)
+    cur.execute(sql)
+    info_col = ('STOCK_CODE','STOCK_NAME','STOCK_CATE')
+    Info = pd.DataFrame(cur.fetchall(),  columns = info_col )
+
+    return Info
+
 #특정 주식 코드의 데이터 반환 함수, 날짜 오름차순
 def LoadStockPriceByCode(cur, StockCode):
     sql = "SEL_STOCK_PRICE " +StockCode

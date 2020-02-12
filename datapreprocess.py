@@ -1,4 +1,4 @@
-import utilStock
+import UtilStock
 import pymssql as mssql
 import random
 import numpy as np
@@ -31,7 +31,7 @@ def getInfoLabelto3DArray(cur, info, date_size, data_size = 0, scaler = False, u
         idx   = rnd[i]
 
         if (unit == 'DAY'):
-            price = utilStock.LoadStockPriceByCode(cur, code.iloc[idx])
+            price = UtilStock.LoadStockPriceByCode(cur, code.iloc[idx])
         elif (unit == 'WEEK'):
             print('Not yet :) ')
             break
@@ -90,7 +90,7 @@ def getInfoLabelto2DArray(cur, info, date_size, data_size = 0, scaler = False, u
         idx   = rnd[i]
 
         if (unit == 'DAY'):
-            price = utilStock.LoadStockPriceByCode(cur, code.iloc[idx])
+            price = UtilStock.LoadStockPriceByCode(cur, code.iloc[idx])
         elif (unit == 'WEEK'):
             print('Not yet :) ')
             break
@@ -122,29 +122,32 @@ def getFinanceInfoLabelto2DArray(cur, info, date_size, data_size=0, scaler=False
     # train list와 label list를 반환
     # unit = 'WEEK', 'MONTH', 'DAY'
 
+    rnd = []
     data = []  # train data
     label = []  # label data
 
     if (data_size == 0):
         data_size = len(info)
 
+    rnd_num = random.randint(0 ,len(info))
+
+    #랜덤하게 갖고 오고 싶었음
+    for i in range(data_size):
+        while rnd_num in rnd :
+            rnd_num = random.randint(0, len(info) - 1)
+        rnd.append(rnd_num)
+
     code = info['STOCK_CODE']
     for i in range(data_size):
+        idx   = rnd[i]
 
-        # 주식 코드별로 없는 데이터가 존재하므로 있을 때까지 반복해서 가져온다.
-        while True:
-            rnd_num = random.randint(0, len(info) - 1)
-
-            if(unit == 'DAY'):
-                price = utilStock.LoadStockFinanceByCode(cur, code.iloc[rnd_num])
-            elif (unit == 'WEEK'):
-                price = utilStock.LoadStockFinanceWeekByCode(cur, code.iloc[rnd_num])
-            elif (unit == 'MONTH'):
-                print('Not yet :) ')
-                break
-
-            if price.empty == False:
-                break
+        if(unit == 'DAY'):
+            price = UtilStock.LoadStockFinanceByCode(cur, code.iloc[idx])
+        elif (unit == 'WEEK'):
+            price = UtilStock.LoadStockFinanceWeekByCode(cur, code.iloc[idx])
+        elif (unit == 'MONTH'):
+            print('Not yet :) ')
+            break
 
         price.drop('DATE', axis=1, inplace=True)  # 날짜 제거
         price = price.dropna()  # NONE값 가진 행 제거
@@ -177,9 +180,9 @@ def getFinanceInfoLabelto3DArray(cur, info, date_size, data_size=0, scaler=False
             rnd_num = random.randint(0, len(info) - 1)
 
             if(unit == 'DAY'):
-                price = utilStock.LoadStockFinanceByCode(cur, code.iloc[rnd_num])
+                price = UtilStock.LoadStockFinanceByCode(cur, code.iloc[rnd_num])
             elif (unit == 'WEEK'):
-                price = utilStock.LoadStockFinanceWeekByCode(cur, code.iloc[rnd_num])
+                price = UtilStock.LoadStockFinanceWeekByCode(cur, code.iloc[rnd_num])
             elif (unit == 'MONTH'):
                 print('Not yet :) ')
                 break
@@ -226,9 +229,9 @@ def getFinanceInfoLabelto4DArray(cur, info, date_size, data_size=0, scaler=False
             rnd_num = random.randint(0, len(info) - 1)
 
             if(unit == 'DAY'):
-                price = utilStock.LoadStockFinanceByCode(cur, code.iloc[rnd_num])
+                price = UtilStock.LoadStockFinanceByCode(cur, code.iloc[rnd_num])
             elif (unit == 'WEEK'):
-                price = utilStock.LoadStockFinanceWeekByCode(cur, code.iloc[rnd_num])
+                price = UtilStock.LoadStockFinanceWeekByCode(cur, code.iloc[rnd_num])
             elif (unit == 'MONTH'):
                 print('Not yet :) ')
                 break
@@ -285,7 +288,7 @@ def getInfoLabelto1Dlist(cur, info, data_size = 0, scaler = False, unit = 'DAY')
         idx   = rnd[i]
 
         if (unit == 'DAY'):
-            price = utilStock.LoadStockPriceByCode(cur, code.iloc[rnd_num])
+            price = UtilStock.LoadStockPriceByCode(cur, code.iloc[idx])
         elif (unit == 'WEEK'):
             print('Not yet :) ')
             break
@@ -314,10 +317,10 @@ def getInfoLabelto1Dlist(cur, info, data_size = 0, scaler = False, unit = 'DAY')
 
 #연습장
 if __name__ == "__main__":
-    server, user, password, database = utilStock.ParseConfig('config.ini')
+    server, user, password, database = UtilStock.ParseConfig('config.ini')
     connect = mssql.connect(server=server, user=user, password=password, database=database, charset='UTF8')
     cur = connect.cursor()
-    info = utilStock.LoadStockInfo(cur)
+    info = UtilStock.LoadStockInfo(cur)
     data, label = getFinanceInfoLabelto4DArray(cur, info, data_size=0, date_size=5,  scaler= True)
     print(1)
 
