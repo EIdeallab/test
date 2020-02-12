@@ -1,4 +1,4 @@
-import UtilStock
+import utilStock
 import pymssql as mssql
 import random
 import numpy as np
@@ -79,7 +79,7 @@ def getInfoLabelto2DArray(cur, info, date_size, data_size = 0, scaler = False):
     code = info['STOCK_CODE']
     for i in range(data_size):
         idx   = rnd[i]
-        price = UtilStock.LoadStockPriceByCode(cur, code.iloc[idx])
+        price = utilStock.LoadStockPriceByCode(cur, code.iloc[idx])
         price.drop('DATE', axis=1, inplace=True) #날짜 제거
         price = price.dropna()  #NONE값 가진 행 제거
         ratio = price['CHANGE_RATIO']
@@ -116,7 +116,7 @@ def getFinanceInfoLabelto2DArray(cur, info, date_size, data_size=0, scaler=False
         while True:
             rnd_num = random.randint(0, len(info) - 1)
             # price = UtilStock.LoadStockFinanceByCode(cur, code.iloc[rnd_num])
-            price = UtilStock.LoadStockFinanceWeekByCode(cur, code.iloc[rnd_num])
+            price = utilStock.LoadStockFinanceWeekByCode(cur, code.iloc[rnd_num])
 
             if price.empty == False:
                 break
@@ -150,7 +150,7 @@ def getFinanceInfoLabelto3DArray(cur, info, date_size, data_size=0, scaler=False
         # 주식 코드별로 없는 데이터가 존재하므로 있을 때까지 반복해서 가져온다.
         while True:
             rnd_num = random.randint(0, len(info) - 1)
-            price = UtilStock.LoadStockFinanceByCode(cur, code.iloc[rnd_num])
+            price = utilStock.LoadStockFinanceByCode(cur, code.iloc[rnd_num])
             if price.empty == False:
                 break
 
@@ -189,7 +189,7 @@ def getFinanceInfoLabelto4DArray(cur, info, date_size, data_size=0, scaler=False
         # 주식 코드별로 없는 데이터가 존재하므로 있을 때까지 반복해서 가져온다.
         while True:
             rnd_num = random.randint(0, len(info) - 1)
-            price = UtilStock.LoadStockFinanceByCode(cur, code.iloc[rnd_num])
+            price = utilStock.LoadStockFinanceByCode(cur, code.iloc[rnd_num])
 
             if price.empty == False:
                 break
@@ -240,7 +240,7 @@ def getInfoLabelto1Dlist(cur, info, data_size = 0, scaler = False):
     code = info['STOCK_CODE']
     for i in range(data_size):
         idx   = rnd[i]
-        price = UtilStock.LoadStockPriceByCode(cur, code.iloc[idx])
+        price = utilStock.LoadStockPriceByCode(cur, code.iloc[idx])
         price.drop('DATE', axis=1, inplace=True) #날짜 제거
         price = price.dropna()  #NONE값 가진 행 제거
         ratio = price['CHANGE_RATIO']
@@ -262,10 +262,10 @@ def getInfoLabelto1Dlist(cur, info, data_size = 0, scaler = False):
 
 #연습장
 if __name__ == "__main__":
-    server, user, password, database = UtilStock.ParseConfig('config.ini')
+    server, user, password, database = utilStock.ParseConfig('config.ini')
     connect = mssql.connect(server=server, user=user, password=password, database=database, charset='UTF8')
     cur = connect.cursor()
-    info = UtilStock.LoadStockInfo(cur)
+    info = utilStock.LoadStockInfo(cur)
     data, label = getFinanceInfoLabelto4DArray(cur, info, data_size=0, date_size=5,  scaler= True)
     print(1)
 

@@ -1,4 +1,4 @@
-import UtilStock
+import utilStock
 import datapreprocess
 import pymssql as mssql
 from keras.models import Sequential
@@ -155,9 +155,9 @@ def train_Conv2DTD_Lstm(data,label):
 
 
 if __name__ == "__main__":
-    server, user, password, database = UtilStock.ParseConfig('config.ini')
+    server, user, password, database = utilStock.ParseConfig('config.ini')
     connect = mssql.connect(server=server, user=user, password=password, database=database, charset='UTF8')
     cur = connect.cursor()
-    info = UtilStock.LoadStockInfo(cur)
+    info = utilStock.LoadStockInfo(cur)
     data, label = datapreprocess.getFinanceInfoLabelto2DArray(cur, info, data_size= sample_size, date_size= date_size, scaler=True)
     train_Lstm(data,label)
