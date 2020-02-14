@@ -169,26 +169,34 @@ def getFinanceInfoLabelto2DArray(cur, info, date_size, data_size=0, scaler=False
 
 def getFinanceInfoLabelto3DArray(cur, info, date_size, data_size=0, scaler=False, unit = 'DAY'):
     # unit = 'WEEK', 'MONTH', 'DAY'
+
+    rnd = []
+
     if (data_size == 0):
         data_size = len(info)
+
+
+    rnd_num = random.randint(0 ,len(info))
+
+    #랜덤하게 갖고 오고 싶었음
+    for i in range(data_size):
+        while rnd_num in rnd :
+            rnd_num = random.randint(0, len(info) - 1)
+        rnd.append(rnd_num)
 
     code = info['STOCK_CODE']
     for i in range(data_size):
 
-        # 주식 코드별로 없는 데이터가 존재하므로 있을 때까지 반복해서 가져온다.
-        while True:
-            rnd_num = random.randint(0, len(info) - 1)
+        idx   = rnd[i]
 
-            if(unit == 'DAY'):
-                price = UtilStock.LoadStockFinanceByCode(cur, code.iloc[rnd_num])
-            elif (unit == 'WEEK'):
-                price = UtilStock.LoadStockFinanceWeekByCode(cur, code.iloc[rnd_num])
-            elif (unit == 'MONTH'):
-                print('Not yet :) ')
-                break
+        if (unit == 'DAY'):
+            price = UtilStock.LoadStockFinanceByCode(cur, code.iloc[idx])
+        elif (unit == 'WEEK'):
+            price = UtilStock.LoadStockFinanceWeekByCode(cur, code.iloc[idx])
+        elif (unit == 'MONTH'):
+            print('Not yet :) ')
+            break
 
-            if price.empty == False:
-                break
 
         price.drop('DATE', axis=1, inplace=True)  # 날짜 제거
         price = price.dropna()  # NONE값 가진 행 제거
@@ -215,29 +223,35 @@ def getFinanceInfoLabelto3DArray(cur, info, date_size, data_size=0, scaler=False
                 label = np.concatenate([label,_y])
     return data, label
 
-def getFinanceInfoLabelto4DArray(cur, info, date_size, data_size=0, scaler=False, unit = 'DAY'):
+def getFinanceInfoLabelto4DArray(cur, info, date_size, data_size=0, scaler=False, unit = 'DAY', labelunit = False):
     # unit = 'WEEK', 'MONTH', 'DAY'
+
+    rnd = []
 
     if (data_size == 0):
         data_size = len(info)
 
+    rnd_num = random.randint(0 ,len(info))
+
+    #랜덤하게 갖고 오고 싶었음
+    for i in range(data_size):
+        while rnd_num in rnd :
+            rnd_num = random.randint(0, len(info) - 1)
+        rnd.append(rnd_num)
+
     code = info['STOCK_CODE']
     for i in range(data_size):
 
-        # 주식 코드별로 없는 데이터가 존재하므로 있을 때까지 반복해서 가져온다.
-        while True:
-            rnd_num = random.randint(0, len(info) - 1)
+        idx   = rnd[i]
 
-            if(unit == 'DAY'):
-                price = UtilStock.LoadStockFinanceByCode(cur, code.iloc[rnd_num])
-            elif (unit == 'WEEK'):
-                price = UtilStock.LoadStockFinanceWeekByCode(cur, code.iloc[rnd_num])
-            elif (unit == 'MONTH'):
-                print('Not yet :) ')
-                break
+        if (unit == 'DAY'):
+            price = UtilStock.LoadStockFinanceByCode(cur, code.iloc[idx])
+        elif (unit == 'WEEK'):
+            price = UtilStock.LoadStockFinanceWeekByCode(cur, code.iloc[idx])
+        elif (unit == 'MONTH'):
+            print('Not yet :) ')
+            break
 
-            if price.empty == False:
-                break
 
         price.drop('DATE', axis=1, inplace=True)  # 날짜 제거
         price = price.dropna()  # NONE값 가진 행 제거
@@ -250,10 +264,17 @@ def getFinanceInfoLabelto4DArray(cur, info, date_size, data_size=0, scaler=False
             dataset = MinMaxScaler(dataset)
 
         for j in range(0, len(dataset) - date_size):
-            _x = dataset[j:j + date_size]
-            _y = ratio[j + date_size: j + date_size + 1 ].values
 
-            _x = _x.reshape((1, _x.shape[0], 3, 6, 1)) ########하드코딩
+            if labelunit:
+                _x = dataset[j:j + date_size]
+                _y = ratio[j + 1: j + date_size + 1].values
+                _x = _x.reshape((1, _x.shape[0], 3, 6, 1))  ###
+                _y = _y.reshape((1, _y.shape[0], 1))
+
+            else:
+                _x = dataset[j:j + date_size]
+                _y = ratio[j + date_size: j + date_size + 1].values
+                _x = _x.reshape((1, _x.shape[0], 3, 6, 1))  ########하드코딩
 
             #첫 루프만
             if(i == 0 and j == 0):
