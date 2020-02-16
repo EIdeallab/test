@@ -151,6 +151,7 @@ def getFinanceInfoLabelto2DArray(cur, info, date_size, data_size=0, scaler=False
 
         price.drop('DATE', axis=1, inplace=True)  # 날짜 제거
         price = price.dropna()  # NONE값 가진 행 제거
+        price = price.apply(pd.to_numeric, downcast='float')
         ratio = price['CHANGE_RATIO']
         price.drop('CHANGE_RATIO', axis=1, inplace=True)  # y값 제거
         dataset = price.as_matrix()
