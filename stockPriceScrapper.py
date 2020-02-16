@@ -30,7 +30,7 @@ try:
         print("Load Stock info : ", url)
        
         # DB에 저장되지 않은 최신 일자 데이터 가져오기
-        for page in range(1, 28):
+        for page in range(1, 32):
             
              # 일자 데이터를 담을 df라는 DataFrame 정의 
             price_df = pd.DataFrame() 

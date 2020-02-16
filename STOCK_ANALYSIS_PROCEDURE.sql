@@ -1,6 +1,6 @@
 USE [STOCK_ANALYSIS];  
 
--- Å×ÀÌºí »ý¼º ÇÁ·Î½ÃÀú --
+-- ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î½ï¿½ï¿½ï¿½ --
 GO
 CREATE PROCEDURE CREATE_TBL_STOCK_INFO
 AS
@@ -60,12 +60,14 @@ GO
 CREATE PROCEDURE CREATE_TBL_THEME_INFO
 AS
 BEGIN
-	IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='STOCK_THEME' AND xtype='U')
+	IF EXISTS (SELECT * FROM sysobjects WHERE name='STOCK_THEME' AND xtype='U')
+		DROP TABLE STOCK_THEME
 	BEGIN
 	CREATE TABLE STOCK_THEME
 	([STOCK_CODE] INT, [THEME_CODE] INT)
 	END
-	IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='THEME_INFO' AND xtype='U')
+	IF EXISTS (SELECT * FROM sysobjects WHERE name='THEME_INFO' AND xtype='U')
+		DROP TABLE THEME_INFO
 	BEGIN
 	CREATE TABLE THEME_INFO
 	([THEME_CODE] INT, [THEME_NAME] NVARCHAR(50), [THEME_INFO] NVARCHAR(MAX))
@@ -75,7 +77,7 @@ BEGIN
 END
 GO
 
--- Å×ÀÌºí ¾÷µ¥ÀÌÆ® ÇÁ·Î½ÃÀú --
+-- ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½Î½ï¿½ï¿½ï¿½ --
 GO  
 CREATE PROCEDURE UPDATE_STOCK_PRICE @STOCK_CODE INT, @START INT, @CLOSE INT, @HIGHEST INT, @LOWEST INT, @VOLUME INT, @DATE DATE
 AS  
@@ -175,28 +177,67 @@ BEGIN
 		CONVERT(FLOAT,A.AVERAGE) / A.BEF_AVERAGE CHANGE_RATIO
 		INTO STOCK_PRICE_RATIO
 		FROM #STOCK_PRICE_RATIO A
+
+		DELETE FROM STOCK_PRICE_RATIO WHERE CHANGE_RATIO IS NULL
+
+		DROP TABLE #STOCK_PRICE_RATIO
+		DROP TABLE #STOCK_PRICE_TEMP
 	END
 END
 GO
 
--- ÆÄ»ý Å×ÀÌºí »ý¼º ÇÁ·Î½ÃÀú --
+-- ï¿½Ä»ï¿½ ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î½ï¿½ï¿½ï¿½ --
 GO  
 CREATE PROCEDURE CREATE_DRV_STOCK_THEME 
 AS  
 BEGIN
 	IF EXISTS (SELECT * FROM sysobjects WHERE name='DRV_STOCK_THEME' AND xtype='U')
 		DROP TABLE DRV_STOCK_THEME
-
+	
+	-- ï¿½Ç¹ï¿½ ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½ï¿½ï¿½
 	DECLARE @QUERY VARCHAR(MAX)
 	SET @QUERY = '';
 
-	SELECT @QUERY = @QUERY + '[' + STR(THEME_CODE)  + '],'
+	SELECT @QUERY = @QUERY + '[' + LTRIM(STR(THEME_CODE))  + '],'
 	FROM (SELECT DISTINCT THEME_CODE FROM STOCK_THEME) A
 	ORDER BY THEME_CODE ASC
 
 	SET @QUERY = LEFT(@QUERY, LEN(@QUERY)-1)
+	EXEC('SELECT * INTO DRV_STOCK_THEME_ FROM STOCK_THEME PIVOT(COUNT(THEME_CODE) FOR THEME_CODE IN (' + @QUERY + ')) AS PVT')
 
-	EXEC('SELECT * INTO DRV_STOCK_THEME FROM STOCK_THEME PIVOT(COUNT(THEME_CODE) FOR THEME_CODE IN (' + @QUERY + ')) AS PVT')
+	-- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Û¿ï¿½ ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½ï¿½ï¿½(2ï¿½ï¿½ ï¿½ï¿½ï¿½Ú¿ï¿½)
+	DECLARE @COL VARCHAR(MAX)
+	DECLARE @COLCNT INT
+	DECLARE @IT INT
+	DECLARE @SPLIT VARCHAR(1)
+
+	SELECT TOP 1 @COLCNT = (SELECT COUNT(*) FROM dbo.syscolumns where id=OBJECT_ID('DRV_STOCK_THEME_')) - 1
+	SET @COL = 'LTRIM(STR([0]))'
+	SET @IT = 1
+	SET @SPLIT = ','
+
+	WHILE (@IT < @COLCNT)
+	BEGIN
+		SET @COL = @COL + ' + '','' + LTRIM(STR([' + LTRIM(STR(@IT)) + ']))'
+		SET @IT = @IT + 1
+	END
+
+	EXEC('SELECT STOCK_CODE, ' + @COL + 'AS THEME_STRING INTO DRV_STOCK_THEME FROM DRV_STOCK_THEME_')
+
+	-- ï¿½×¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
+	/*
+	SET @COL = ''
+	WHILE (@IT < @COLCNT)
+	BEGIN
+		SET @COL = @COL + '0'
+	END
+
+	INSERT INTO DRV_STOCK_THEME
+	SELECT STOCK_CODE, ''
+	FROM STOCK_INFO
+	WHERE STOCK_CODE NOT IN (SELECT STOCK_CODE FROM DRV_STOCK_THEME)
+	*/
+	DROP TABLE DRV_STOCK_THEME_
 END
 GO
 
@@ -263,19 +304,65 @@ BEGIN
 END
 GO
 
+-- ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î½ï¿½ï¿½ï¿½
+
+GO
+CREATE PROCEDURE CONV_STOCK_NAME
+AS
+BEGIN
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½' WHERE STOCK_NAME = 'ï¿½ï¿½ï¿½ï¿½ï¿½Úµï¿½ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½ï¿½ï¿½ï¿½ï¿½' WHERE STOCK_NAME = 'ï¿½ï¿½ï¿½ï¿½Úµï¿½ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½Ö¿ï¿½ï¿½ï¿½' WHERE STOCK_NAME = 'ï¿½Ö¿ï¿½ï¿½Úµï¿½ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½Þµï¿½Ó½ï¿½' WHERE STOCK_NAME = 'ï¿½ï¿½ï¿½É¸Þµï¿½Ó½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'TBHï¿½Û·Î¹ï¿½' WHERE STOCK_NAME = 'Æ¼ï¿½ï¿½ï¿½ï¿½Ä¡ï¿½Û·Î¹ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½' WHERE STOCK_NAME = 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¼ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½Ñ±ï¿½ï¿½ï¿½ï¿½ï¿½' WHERE STOCK_NAME = 'ï¿½Ñ±ï¿½ï¿½ï¿½ï¿½Ú°ï¿½ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½ï¿½È­ï¿½Üµï¿½ï¿½ï¿½' WHERE STOCK_NAME = 'ï¿½ï¿½È­ï¿½Üµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½Ñ±ï¿½ï¿½ï¿½Ã¶ï¿½ï¿½' WHERE STOCK_NAME = 'ï¿½Ñ±ï¿½ï¿½ï¿½Ã¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'NHN' WHERE STOCK_NAME = 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¡ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'IHQ' WHERE STOCK_NAME = 'ï¿½ï¿½ï¿½Ì¿ï¿½ï¿½ï¿½Ä¡Å¥'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½' WHERE STOCK_NAME = 'ï¿½ï¿½ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½ï¿½È­ï¿½ï¿½ï¿½ï¿½' WHERE STOCK_NAME = 'ï¿½ï¿½È­ï¿½ï¿½ï¿½Ú°ï¿½ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½Ñ±ï¿½ï¿½ï¿½ï¿½ï¿½' WHERE STOCK_NAME = 'ï¿½Ñ±ï¿½ï¿½ï¿½ï¿½Â°ï¿½ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'Ãµï¿½ï¿½' WHERE STOCK_NAME = 'ï¿½Å±Ô»ï¿½ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½ï¿½ï¿½ï¿½Ä«ï¿½ï¿½ï¿½Ì¿ï¿½' WHERE STOCK_NAME = 'ï¿½Å±Ô»ï¿½ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½ï¿½ï¿½ï°¡ï¿½ï¿½' WHERE STOCK_NAME = 'ï¿½ï¿½ï¿½ïµµï¿½Ã°ï¿½ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½Î»ê°¡ï¿½ï¿½' WHERE STOCK_NAME = 'ï¿½Î»êµµï¿½Ã°ï¿½ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½' WHERE STOCK_NAME = 'ï¿½Ñ±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'KT' WHERE STOCK_NAME = 'ï¿½ï¿½ï¿½ï¿½Æ¼'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'È¿ï¿½ï¿½ITX' WHERE STOCK_NAME = 'È¿ï¿½ï¿½ ITX'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½' WHERE STOCK_NAME = 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ»ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'KCTC' WHERE STOCK_NAME = 'ï¿½ï¿½ï¿½Ì¾ï¿½Æ¼ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½Ôµï¿½Ä¥ï¿½ï¿½' WHERE STOCK_NAME = 'ï¿½Ôµï¿½Ä¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½Å¼ï¿½ï¿½ï¿½ I&C' WHERE STOCK_NAME = 'ï¿½Å¼ï¿½ï¿½ï¿½I&C'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½ï¿½ï¿½Ìºï¿½' WHERE STOCK_NAME = 'ï¿½ï¿½ï¿½Ìºï¿½Ä¿ï¿½Â´ï¿½ï¿½ï¿½ï¿½Ì¼ï¿½ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½ï¿½ï¿½ï¿½ï¿½Ç°' WHERE STOCK_NAME = 'ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½Ú½ï¿½ï¿½ï¿½Ì¿ï¿½' WHERE STOCK_NAME = 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å»'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½ï¿½ï¿½Ì¼Ò´ï¿½' WHERE STOCK_NAME = 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¼Ò´ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ï¿½Ì³ï¿½ï¿½ï¿½' WHERE STOCK_NAME = 'ï¿½ï¿½Æ¼ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½Þ´Ïµï¿½' WHERE STOCK_NAME = 'ï¿½Þ´Ïµï¿½ï¿½ï¿½Å©ï¿½î·¯ï¿½ï¿½ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'POSCO' WHERE STOCK_NAME = 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½ï¿½È£ï¿½ï¿½ï¿½ï¿½' WHERE STOCK_NAME = 'ï¿½ï¿½È£ï¿½ï¿½ï¿½ï¿½È­ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½Ñ½Å±ï¿½ï¿½' WHERE STOCK_NAME = 'ï¿½Ñ½Å±ï¿½ï¿½ï¿½ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½Ñ±ï¿½ï¿½ï¿½ï¿½ï¿½' WHERE STOCK_NAME = 'ï¿½Ñ±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½ï¿½ï¿½ë¿¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½' WHERE STOCK_NAME = 'ï¿½ï¿½ï¿½ë¿¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½ï¿½ï¿½ï¿½ï¿½Ì¿ï¿½ï¿½ï¿½È¦ï¿½ï¿½ï¿½ï¿½' WHERE STOCK_NAME = 'ï¿½ï¿½ï¿½ï¿½ï¿½Ì¿ï¿½ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½ï¿½Ä«ï¿½Ì¶ï¿½ï¿½ï¿½ï¿½ï¿½' WHERE STOCK_NAME = 'ï¿½ï¿½ï¿½ï¿½Æ¼ï¿½ï¿½Ä«ï¿½Ì¶ï¿½ï¿½ï¿½ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½ï¿½ï¿½ç¹°ï¿½ï¿½' WHERE STOCK_NAME = 'ï¿½ï¿½ï¿½ç¹°ï¿½ï¿½ï¿½ï¿½'
+	UPDATE STOCK_INFO SET STOCK_NAME = 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½' WHERE STOCK_NAME = 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½'
+
+END
+GO
+
 GO
 CREATE PROCEDURE CONV_FINANCE_INFO
 AS
 BEGIN
-	IF EXISTS (SELECT * FROM sysobjects WHERE name='CVT_FINANCE_INFO_WEEK' AND xtype='U')
-		DROP TABLE CVT_FINANCE_INFO_WEEK
-	IF EXISTS (SELECT * FROM sysobjects WHERE name='CVT_FINANCE_INFO_MONTH' AND xtype='U')
-		DROP TABLE CVT_FINANCE_INFO_MONTH
-
 	SELECT * 
 	FROM FINANCE_INFO A WHERE TOTAL_STOCK = 0 
 
-	-- ÀÏºÎ Àç¹«Á¦Ç¥ÀÇ °æ¿ì ÇÏµåÄÚµù ÇÊ¿ä
+	-- ï¿½Ïºï¿½ ï¿½ç¹«ï¿½ï¿½Ç¥ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ïµï¿½ï¿½Úµï¿½ ï¿½Ê¿ï¿½
+	UPDATE FINANCE_INFO SET TOTAL_STOCK = 840000 WHERE STOCK_CODE = 306620 
 	UPDATE FINANCE_INFO SET TOTAL_STOCK = 84000000 WHERE STOCK_CODE = 041190 AND [DATE] = '2019-09-01'
 	UPDATE FINANCE_INFO SET TOTAL_STOCK = 33873125 WHERE STOCK_CODE = 303030 AND [DATE] = '2019-09-01'
 	UPDATE FINANCE_INFO SET TOTAL_STOCK = 22353873 WHERE STOCK_CODE = 042370 AND [DATE] = '2019-09-01'
@@ -283,21 +370,19 @@ BEGIN
 	UPDATE FINANCE_INFO SET TOTAL_STOCK = 31154798 WHERE STOCK_CODE = 093240 
 	UPDATE FINANCE_INFO SET TOTAL_STOCK = 140224314 WHERE STOCK_CODE = 138040 
 
-	-- Àç¹«Á¦Ç¥°¡ 5°³ ¾Æ·¡·Î ³ª¿À´Â °ÍµéÀº ½ºÆÑÁÖÀÌ°Å³ª µ¥ÀÌÅÍ Á¤º¸°¡ ºÎÁ·ÇÏ¹Ç·Î Á¦¿ÜÇÑ´Ù (30°Ç ¹Ì¸¸)
-	SELECT * 
-	INTO #FINANCE_INFO_5Q
-	FROM FINANCE_INFO 
+	-- ï¿½ç¹«ï¿½ï¿½Ç¥ï¿½ï¿½ 5ï¿½ï¿½ ï¿½Æ·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Íµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì°Å³ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¹Ç·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½ (30ï¿½ï¿½ ï¿½Ì¸ï¿½)
+	DELETE FROM FINANCE_INFO 
 	WHERE STOCK_CODE IN (
 		SELECT STOCK_CODE 
 		FROM FINANCE_INFO A 
 		GROUP BY STOCK_CODE 
-		HAVING COUNT(*) > 4 )
+		HAVING COUNT(*) < 5 )
 	
-	-- °áÃøÄ¡°¡ ÀÖ´Â µ¥ÀÌÅÍ È®ÀÎ(ÀÚ»ê ºÎÃ¤ ÀÚº» ¸ðµÎ 0ÀÎ°æ¿ì ¿À·ù µ¥ÀÌÅÍ·Î Ã³¸®)
-	SELECT * FROM #FINANCE_INFO_5Q
+	-- ï¿½ï¿½ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½(ï¿½Ú»ï¿½ ï¿½ï¿½Ã¤ ï¿½Úºï¿½ ï¿½ï¿½ï¿½ 0ï¿½Î°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í·ï¿½ Ã³ï¿½ï¿½)
+	DELETE FROM FINANCE_INFO
 	WHERE STOCK_CODE IN (
 		SELECT STOCK_CODE
-		FROM #FINANCE_INFO_5Q
+		FROM FINANCE_INFO
 		WHERE ASSETS_SUM = 0 AND DEBT_SUM = 0 AND CAPITAL_SUM = 0
 		GROUP BY STOCK_CODE)
 
@@ -316,8 +401,6 @@ BEGIN
 	FROM FINANCE_INFO A 
 
 	SELECT B.STOCK_CODE, B.AVERAGE, B.HIGHEST, B.LOWEST, B.VOLUME, B.CHANGE_RATIO,
-		C.LOWEST WEEK_MIN, C.HIGHEST WEEK_MAX, C.AVERAGE WEEK_AVG,
-		CONVERT(FLOAT, (C.AVERAGE - C.LOWEST))/NULLIF((C.HIGHEST - C.LOWEST),0) WEEK_RATIO,
 		B.AVERAGE * A.TOTAL_STOCK MARKET_CAP, 
 		B.AVERAGE * CONVERT(FLOAT, B.VOLUME) TRADING_VAL,  
 		A.ASSETS_SUM, A.CAPITAL_SUM, A.DEBT_SUM,
@@ -330,7 +413,6 @@ BEGIN
 	INTO #FINANCE_TEMP2
 	FROM #FINANCE_TEMP A 
 	JOIN STOCK_PRICE_RATIO B ON A.STOCK_CODE = B.STOCK_CODE AND B.[DATE] BETWEEN A.[DATE] AND A.NXT_QUARTER 
-	JOIN DRV_STOCK_PRICE_WEEK C ON B.STOCK_CODE = C.STOCK_CODE AND DATEPART(WEEK, B.[DATE]) = C.[WEEK]
 	ORDER BY B.STOCK_CODE ASC, B.[DATE] DESC
 
 	SELECT A.STOCK_CODE,
@@ -358,10 +440,10 @@ BEGIN
 	FROM #FINANCE_TEMP2 A
 	ORDER BY A.STOCK_CODE, A.[DATE] DESC
 
-	-- °Å·¡Á¤Áö·Î ÀÎÇÑ º¯µ¿·ü Á¦¿Ü Ã³¸®
+	-- ï¿½Å·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
 	DELETE FROM STOCK_TRAINING_SET WHERE CHANGE_RATIO > 1.3 OR CHANGE_RATIO < 0.7
 
-	-- Àç¹«Á¦Ç¥¿¡¼­ NULL°ªÀÎ °æ¿ì´Â DIV/0 ÀÌ¹Ç·Î ÇØ´ç Á¾¸ñÀÇ °ªÁß MAX°ªÀ¸·Î ÀÔ·Â
+	-- ï¿½ç¹«ï¿½ï¿½Ç¥ï¿½ï¿½ï¿½ï¿½ NULLï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ DIV/0 ï¿½Ì¹Ç·ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ MAXï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô·ï¿½
 	UPDATE STOCK_TRAINING_SET SET PBR = (SELECT MAX(PBR) FROM STOCK_TRAINING_SET) WHERE PBR IS NULL
 	UPDATE STOCK_TRAINING_SET SET PBR2 = (SELECT MAX(PBR2) FROM STOCK_TRAINING_SET)WHERE PBR2 IS NULL
 	UPDATE STOCK_TRAINING_SET SET PDR = (SELECT MAX(PDR) FROM STOCK_TRAINING_SET) WHERE PDR IS NULL
@@ -375,6 +457,11 @@ BEGIN
 	UPDATE STOCK_TRAINING_SET SET ROE = (SELECT MAX(ROE) FROM STOCK_TRAINING_SET) WHERE ROE IS NULL
 	UPDATE STOCK_TRAINING_SET SET ROA = (SELECT MAX(ROA) FROM STOCK_TRAINING_SET) WHERE ROA IS NULL
 
+	-- HIGHEST LOWEST ï¿½ï¿½Ä¡ ï¿½Ê¿ï¿½
+	UPDATE STOCK_TRAINING_SET SET HIGHEST = AVERAGE WHERE HIGHEST = 0
+	UPDATE STOCK_TRAINING_SET SET LOWEST = AVERAGE  WHERE  LOWEST = 0
+	SELECT * FROM STOCK_TRAINING_SET ORDER BY STOCK_CODE
+	DROP TABLE #STOCK_TRAINING_SET
 	DROP TABLE #FINANCE_TEMP
 	DROP TABLE #FINANCE_TEMP2
 END
@@ -431,10 +518,10 @@ BEGIN
 	FROM #FINANCE_TEMP2 A
 	ORDER BY A.STOCK_CODE, A.[DATE] DESC
 
-	-- °Å·¡Á¤Áö·Î ÀÎÇÑ º¯µ¿·ü Á¦¿Ü Ã³¸®
+	-- ï¿½Å·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
 	DELETE FROM STOCK_TRAINING_SET_WEEK WHERE CHANGE_RATIO > 1.3 OR CHANGE_RATIO < 0.7
 
-	-- Àç¹«Á¦Ç¥¿¡¼­ NULL°ªÀÎ °æ¿ì´Â DIV/0 ÀÌ¹Ç·Î ÇØ´ç Á¾¸ñÀÇ °ªÁß MAX°ªÀ¸·Î ÀÔ·Â
+	-- ï¿½ç¹«ï¿½ï¿½Ç¥ï¿½ï¿½ï¿½ï¿½ NULLï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ DIV/0 ï¿½Ì¹Ç·ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ MAXï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô·ï¿½
 	UPDATE STOCK_TRAINING_SET_WEEK SET PBR = (SELECT MAX(PBR) FROM STOCK_TRAINING_SET_WEEK) WHERE PBR IS NULL
 	UPDATE STOCK_TRAINING_SET_WEEK SET PBR2 = (SELECT MAX(PBR2) FROM STOCK_TRAINING_SET_WEEK)WHERE PBR2 IS NULL
 	UPDATE STOCK_TRAINING_SET_WEEK SET PDR = (SELECT MAX(PDR) FROM STOCK_TRAINING_SET_WEEK) WHERE PDR IS NULL
@@ -455,7 +542,7 @@ BEGIN
 END
 GO
 
--- µ¥ÀÌÅÍ ·Îµå SP
+-- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ SP
 GO
 CREATE PROCEDURE SEL_STOCK_PRICE @STOCK_CODE INT
 AS
@@ -494,7 +581,7 @@ BEGIN
     ORDER BY DATE
 END
 
--- Å×½ºÆ® ÄÚµå --
+-- ï¿½×½ï¿½Æ® ï¿½Úµï¿½ --
 
 SELECT * FROM STOCK_TRAINING_SET WHERE CHANGE_RATIO IS NULL
 
@@ -506,10 +593,17 @@ DROP INDEX FINANCE_INFO_INDEX ON FINANCE_INFO
 DROP PROCEDURE CREATE_DRV_STOCK_PRICE_WEEK
 DROP PROCEDURE CREATE_DRV_STOCK_PRICE_MONTH
 
+SELECT * FROM STOCK_PRICE_RATIO ORDER BY CHANGE_RATIO
+
 DROP TABLE THEME_INFO
 DROP TABLE STOCK_THEME
 DROP PROCEDURE CREATE_TBL_THEME_INFO
 UPDATE_THEME_INFO
 UPDATE_STOCK_THEME 1,2
 STOCK_INFO
-UPDATE_THEME_INFO 0, 'ÀÚµ¿Â÷ ´ëÇ¥ÁÖ', 'ÀÚµ¿Â÷ Á¾ÇÕ»ý»ê ¸ÞÀÌÄ¿ ¹× ´ëÇü ¸ðµâ ºÎÇ°¾÷Ã¼. ±¹Á¦ ÀÚµ¿Â÷»ê¾÷ µ¿Çâ, °æ±âÈ°¼ºÈ­ ¿©ºÎ, È¯À² µ¿Çâ, À¯°¡ µ¿Çâ µî¿¡ ¹Î°¨ÇÑ Á¾¸ñ±ºÀÓ. ÀÏ¹ÝÀûÀ¸·Î °æ±â°¡ È£È²±â¸¦ º¸ÀÏ °æ¿ì, ¿ø/´Þ·¯ È¯À²ÀÌ »ó½ÂÇÒ °æ¿ì, À¯°¡°¡ ÇÏ¶ôÇÒ °æ¿ì¿¡ ½ÇÀû°³¼± ±â´ë°¨ÀÌ Ä¿Áö´Â °æÇâÀÌ ÀÖÀ½. °í¿ëÈ¿°ú¿Í ±¹¹Î°æÁ¦ ÆÄ±ÞÈ¿°ú°¡ Å« »ê¾÷ÀÓ.'
+EXEC CONV_FINANCE_INFO
+UPDATE_THEME_INFO 0, 'ï¿½Úµï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥ï¿½ï¿½', 'ï¿½Úµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Õ»ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¿ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Ç°ï¿½ï¿½Ã¼. ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½È°ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½, È¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½î¿¡ ï¿½Î°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½. ï¿½Ï¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½â°¡ È£È²ï¿½â¸¦ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½, ï¿½ï¿½/ï¿½Þ·ï¿½ È¯ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¶ï¿½ï¿½ï¿½ ï¿½ï¿½ì¿¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ë°¨ï¿½ï¿½ Ä¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½. ï¿½ï¿½ï¿½ï¿½È¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î°ï¿½ï¿½ï¿½ ï¿½Ä±ï¿½È¿ï¿½ï¿½ï¿½ï¿½ Å« ï¿½ï¿½ï¿½ï¿½ï¿½.'
+
+
+
+SELECT LEN(THEME_STRING) FROM STOCK_TRAINING_SET ORDER BY LEN(THEME_STRING)
