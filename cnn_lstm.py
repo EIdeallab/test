@@ -158,12 +158,12 @@ def train_Conv2DLstm(data, label):
     train_Data = data[0: int(len(data) * train_ratio)]
     train_Label = label[0: int(len(data) * train_ratio)]
     train_Data = np.reshape(train_Data, (train_Data.shape[0],  train_Data.shape[1], 1,train_Data.shape[2],train_Data.shape[3]) )
-    train_Label = np.reshape(train_Label, (train_Label.shape[0],train_Label.shape[1], 1))
+    #train_Label = np.reshape(train_Label, (train_Label.shape[0],train_Label.shape[1], 1))
 
     test_Data = data[int(len(data) * train_ratio): len(data)]
     test_Label = label[int(len(data) * train_ratio): len(data)]
     test_Data = np.reshape(test_Data, (test_Data.shape[0], test_Data.shape[1], 1,test_Data.shape[2], test_Data.shape[3]))
-    test_Label = np.reshape(test_Label, (test_Label.shape[0], test_Label.shape[1], 1))
+    #test_Label = np.reshape(test_Label, (test_Label.shape[0], test_Label.shape[1], 1))
 
     model = Sequential()
     model.add(ConvLSTM2D(filters=40, kernel_size=(3, 3),
@@ -182,14 +182,13 @@ def train_Conv2DLstm(data, label):
     model.add(ConvLSTM2D(filters=40, kernel_size=(3, 3),
                        padding='same', return_sequences=True))
     model.add(BatchNormalization())
-
-
     model.add(Conv3D(filters=1, kernel_size=(3, 3, 1),padding='same', data_format='channels_last'))
     model.add(LeakyReLU(alpha=0.2))
-
-    model.add(TimeDistributed(Flatten()))
-    model.add(TimeDistributed(Dense(128)))
-    model.add(TimeDistributed(Dense(1, activation='linear')))
+    model.add(Flatten())
+    model.add(Dense(512))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Dense(256))
+    model.add(Dense(1, activation='linear'))
 
     model.compile(loss='mse', optimizer='rmsprop', metrics=['acc'])
 
@@ -198,14 +197,14 @@ def train_Conv2DLstm(data, label):
 
     print('Train...')
     model.fit(train_Data, train_Label,
-              epochs=10,
+              epochs=5,
               batch_size=32, verbose=2,
               shuffle=False,
               validation_data=(test_Data, test_Label))
 
     testPredict = model.predict(test_Data)
     #testScore = math.sqrt(mean_squared_error(test_Label, testPredict))
-    print('Train Score: %.2f RMSE' % testScore)
+    #print('Train Score: %.2f RMSE' % testScore)
 
     fig = plt.figure(facecolor='white', figsize=(10, 5))
     ax = fig.add_subplot(111)
@@ -220,5 +219,5 @@ if __name__ == "__main__":
     connect = mssql.connect(server=server, user=user, password=password, database=database, charset='UTF8')
     cur = connect.cursor()
     info = UtilStock.LoadFinanceStockInfo(cur)
-    data, label = datapreprocess.getFinanceInfoLabelto4DArray(cur, info, data_size= sample_size, date_size= date_size, scaler=True, unit='DAY', labelunit= True)
+    data, label = datapreprocess.getFinanceInfoLabelto4DArray(cur, info, data_size= sample_size, date_size= date_size, scaler=True, unit='DAY', labelunit= False)
     train_Conv2DLstm(data,label)
