@@ -8,28 +8,24 @@ import numpy as np
 import math
 from sklearn.metrics import mean_squared_error
 import matplotlib.pyplot as plt
+from keras.callbacks import ModelCheckpoint
+from keras.callbacks import EarlyStopping
+from keras.models import load_model
+import os
+
 
 #data params
 train_ratio = 0.7
-
-# Convolution
-kernel_size = 3
-filters = 64
-pool_size = 2
-
 feature_num = 19
 sample_size = 100
 date_size = 5
 
+#model save path
+MODEL_SAVE_FOLDER_PATH = './model/'
+MODEL_NAME = 'LSTM'
 
 #Use get ~to2DArray
-def train_Lstm(data , label):
-
-    train_Data = data[0: int(len(data) * train_ratio)]
-    train_Label = label[0: int(len(data) * train_ratio)]
-
-    test_Data = data[int(len(data) * train_ratio): len(data)]
-    test_Label = label[int(len(data) * train_ratio): len(data)]
+def Load_Lstm_Model(data , label):
 
     model = Sequential()
     model.add(LSTM(50, return_sequences=True, input_shape=(date_size, feature_num)))
@@ -40,35 +36,11 @@ def train_Lstm(data , label):
     model.add(Dense(1, activation='linear'))
     model.compile(loss='mse', optimizer='rmsprop', metrics=['acc'])
 
-    print('Model Build...')
-    model.summary()
+    return model
 
-    print('Train...')
-    model.fit(train_Data, train_Label,
-              epochs=100,
-              batch_size=32, verbose=2,
-              shuffle=True,
-              validation_data=(test_Data, test_Label))
-
-    testPredict = model.predict(test_Data)
-    testScore = math.sqrt(mean_squared_error(test_Label, testPredict))
-    print('Train Score: %.2f RMSE' % testScore)
-
-    fig = plt.figure(facecolor='white', figsize=(10, 5))
-    ax = fig.add_subplot(111)
-    ax.plot(test_Label, label='True')
-    ax.plot(testPredict, label='Prediction')
-    ax.legend()
-    plt.show()
 
 #Use get ~to3DArray
-def train_Conv1D_Lstm(data,label):
-
-    train_Data = data[0: int(len(data) * train_ratio)]
-    train_Label = label[0: int(len(data) * train_ratio)]
-
-    test_Data = data[int(len(data) * train_ratio): len(data)]
-    test_Label = label[int(len(data) * train_ratio): len(data)]
+def Load_Conv1D_Lstm_Model(data,label):
 
     model = Sequential()
     model.add(Conv1D(filters=32,
@@ -87,35 +59,11 @@ def train_Conv1D_Lstm(data,label):
     model.add(Dense(1, activation='linear'))
     model.compile(loss='mse', optimizer='rmsprop', metrics=['acc'])
 
-    print('Model Build...')
-    model.summary()
+    return model
 
-    print('Train...')
-    model.fit(train_Data, train_Label,
-              epochs=100,
-              batch_size=32, verbose=2,
-              shuffle=True,
-              validation_data=(test_Data, test_Label))
-
-    testPredict = model.predict(test_Data)
-    testScore = math.sqrt(mean_squared_error(test_Label, testPredict))
-    print('Train Score: %.2f RMSE' % testScore)
-
-    fig = plt.figure(facecolor='white', figsize=(10, 5))
-    ax = fig.add_subplot(111)
-    ax.plot(test_Label, label='True')
-    ax.plot(testPredict, label='Prediction')
-    ax.legend()
-    plt.show()
 
 #Use get~to4DArray
-def train_Conv2DTD_Lstm(data,label):
-
-    train_Data = data[0: int(len(data) * train_ratio)]
-    train_Label = label[0: int(len(data) * train_ratio)]
-
-    test_Data = data[int(len(data) * train_ratio): len(data)]
-    test_Label = label[int(len(data) * train_ratio): len(data)]
+def Load_Conv2DTD_Lstm_Model(data,label):
 
     model = Sequential()
     model.add(TimeDistributed(Conv2D(32, (2, 2), padding='same'), input_shape=(None, 3, 6, 1)))
@@ -132,27 +80,10 @@ def train_Conv2DTD_Lstm(data,label):
     model.add(Dense(1, activation='linear'))
     model.compile(loss='mse', optimizer='rmsprop', metrics=['acc'])
 
-    print('Model Build...')
-    model.summary()
+    return  model
 
-    print('Train...')
-    model.fit(train_Data, train_Label,
-              epochs=300,
-              batch_size=32, verbose=2,
-              shuffle=False,
-              validation_data=(test_Data, test_Label))
-
-    testPredict = model.predict(test_Data)
-    testScore = math.sqrt(mean_squared_error(test_Label, testPredict))
-    print('Train Score: %.2f RMSE' % testScore)
-
-    fig = plt.figure(facecolor='white', figsize=(10, 5))
-    ax = fig.add_subplot(111)
-    ax.plot(test_Label, label='True')
-    ax.plot(testPredict, label='Prediction')
-    ax.legend()
-    plt.show()
-
+#Use get~to4DArray
+#reshape이 들어가기 때문에 옮기지 않음
 def train_Conv2DLstm(data, label):
 
     train_Data = data[0: int(len(data) * train_ratio)]
@@ -214,10 +145,53 @@ def train_Conv2DLstm(data, label):
     plt.show()
 
 
+def train_model(model,data,label):
+
+    train_Data = data[0: int(len(data) * train_ratio)]
+    train_Label = label[0: int(len(data) * train_ratio)]
+
+    test_Data = data[int(len(data) * train_ratio): len(data)]
+    test_Label = label[int(len(data) * train_ratio): len(data)]
+
+    if not os.path.exists(MODEL_SAVE_FOLDER_PATH):
+        os.mkdir(MODEL_SAVE_FOLDER_PATH)
+
+    model_path = MODEL_SAVE_FOLDER_PATH + MODEL_NAME + '{epoch:02d}-{val_loss:.4f}.h5'
+
+    cb_checkpoint = ModelCheckpoint(filepath=model_path, monitor='val_loss',
+                                    verbose=1, save_best_only=True)
+
+    cb_early_stopping = EarlyStopping(monitor='val_loss', patience=10)
+
+    print('Train...')
+    model.fit(train_Data, train_Label,
+              epochs=100,
+              batch_size=32, verbose=2,
+              shuffle=True,
+              validation_data=(test_Data, test_Label),
+              callbacks=[cb_checkpoint, cb_early_stopping])
+
+    testPredict = model.predict(test_Data)
+    testScore = math.sqrt(mean_squared_error(test_Label, testPredict))
+    print('Train Score: %.2f RMSE' % testScore)
+
+    fig = plt.figure(facecolor='white', figsize=(10, 5))
+    ax = fig.add_subplot(111)
+    ax.plot(test_Label, label='True')
+    ax.plot(testPredict, label='Prediction')
+    ax.legend()
+    plt.show()
+
+
 if __name__ == "__main__":
     server, user, password, database = UtilStock.ParseConfig('config.ini')
     connect = mssql.connect(server=server, user=user, password=password, database=database, charset='UTF8')
     cur = connect.cursor()
     info = UtilStock.LoadFinanceStockInfo(cur)
-    data, label = datapreprocess.getFinanceInfoLabelto4DArray(cur, info, data_size= sample_size, date_size= date_size, scaler=True, unit='DAY', labelunit= False)
-    train_Conv2DLstm(data,label)
+    data, label = datapreprocess.getFinanceInfoLabelto2DArray(cur, info, data_size= sample_size, date_size= date_size, scaler=True, unit='DAY')
+    # model =load_model('LSTM01-0.0030.hd5')
+    model = Load_Lstm_Model(data,label)
+    print('Model Build...')
+    model.summary()
+
+    train_model(model, data, label)
