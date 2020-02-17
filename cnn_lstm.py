@@ -17,7 +17,7 @@ import os
 #data params
 train_ratio = 0.7
 feature_num = 19
-sample_size = 100
+sample_size = 1000
 date_size = 5
 
 #model save path
@@ -61,6 +61,45 @@ def Load_Conv1D_Lstm_Model(data,label):
 
     return model
 
+#Use get ~to3DArray
+def Load_Deep_Conv1D_Lstm_Model(data,label):
+
+    model = Sequential()
+    model.add(Conv1D(filters=32,
+               kernel_size=1,
+               strides=1,
+               input_shape=(date_size, feature_num)))
+    model.add(BatchNormalization())
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Conv1D(filters=64,kernel_size=3, strides=1))
+    model.add(BatchNormalization())
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Conv1D(filters=128,kernel_size=1, strides=1))
+    model.add(BatchNormalization())
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Conv1D(filters=256,kernel_size=3, strides=1))
+    model.add(BatchNormalization())
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Conv1D(filters=512,kernel_size=1, strides=1))
+    model.add(BatchNormalization())
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(LSTM(128, return_sequences=True, activation='tanh'))
+    model.add(Dropout(0, 2))
+    model.add(LSTM(64, return_sequences=False, activation='tanh'))
+    model.add(Dropout(0, 2))
+    model.add(Dense(1024))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Dense(512))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Dense(256))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Dense(128))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Dense(64, activation='linear'))
+    model.add(Dense(1, activation='linear'))
+    model.compile(loss='mse', optimizer='rmsprop', metrics=['acc'])
+
+    return model
 
 #Use get~to4DArray
 def Load_Conv2DTD_Lstm_Model(data,label):
@@ -188,9 +227,9 @@ if __name__ == "__main__":
     connect = mssql.connect(server=server, user=user, password=password, database=database, charset='UTF8')
     cur = connect.cursor()
     info = UtilStock.LoadFinanceStockInfo(cur)
-    data, label = datapreprocess.getFinanceInfoLabelto2DArray(cur, info, data_size= sample_size, date_size= date_size, scaler=True, unit='DAY')
+    data, label = datapreprocess.getFinanceInfoLabelto3DArray(cur, info, data_size= sample_size, date_size= date_size, scaler=True, unit='WEEK')
     # model =load_model('LSTM01-0.0030.hd5')
-    model = Load_Lstm_Model(data,label)
+    model = Load_Deep_Conv1D_Lstm_Model(data,label)
     print('Model Build...')
     model.summary()
 
