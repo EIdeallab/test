@@ -4,6 +4,37 @@ import random
 import numpy as np
 import pandas as pd
 
+
+def getLevel(values, unit = 'DAY'):
+    if (unit == 'DAY'):
+        if (values < 0.9):
+            _y = [0]
+        elif (values >= 0.9) and (values < 0.95):
+            _y = [1]
+        elif (values >= 0.95) and (values < 1.05):
+            _y = [2]
+        elif (values >= 1.05) and (values < 1.1):
+            _y = [3]
+        elif (values >= 1.1):
+            _y = [4]
+
+    elif (unit == 'WEEK'):
+        if (values < 0.7):
+            _y = [0]
+        elif (values >= 0.7) and (values < 0.9):
+            _y = [1]
+        elif (values >= 0.9) and (values < 1.1):
+            _y = [2]
+        elif (values >= 1.1) and (values < 1.3):
+            _y = [3]
+        elif (values >= 1.3):
+            _y = [4]
+
+    elif (unit == 'MONTH'):
+        print('Not yet :) ')
+
+    return _y
+
 def MinMaxScaler(data):
 #정규화 함수
     numerator = data - np.min(data, 0)
@@ -11,7 +42,7 @@ def MinMaxScaler(data):
     # noise term prevents the zero division
     return numerator / (denominator + 1e-7)
 
-def getInfoLabelto3DArray(cur, info, date_size, data_size = 0, scaler = False, unit = 'DAY'):
+def getInfoLabelto3DArray(cur, info, date_size, data_size = 0, scaler = False, unit = 'DAY', bLevel = False):
 #주의 : list가 아닌 ndarray임
 # unit = 'WEEK', 'MONTH', 'DAY'
     rnd = []
@@ -50,7 +81,11 @@ def getInfoLabelto3DArray(cur, info, date_size, data_size = 0, scaler = False, u
 
         for j in range(0, len(dataset) - date_size):
             _x = dataset[j:j + date_size]
-            _y = ratio[j + date_size: j + date_size + 1 ].values
+
+            if(bLevel):
+                _y = getLevel(ratio[j + date_size: j + date_size + 1].values)
+            else:
+                _y = ratio[j + date_size: j + date_size + 1 ].values
 
             #reshape
             _x = _x.reshape((1, _x.shape[0], _x.shape[1]))
@@ -65,7 +100,7 @@ def getInfoLabelto3DArray(cur, info, date_size, data_size = 0, scaler = False, u
 
     return data, label
 
-def getInfoLabelto2DArray(cur, info, date_size, data_size = 0, scaler = False, unit = 'DAY'):
+def getInfoLabelto2DArray(cur, info, date_size, data_size = 0, scaler = False, unit = 'DAY', bLevel = False):
 # data : LoadStockInfo 반환값, date_size : 몇 일씩 뭉칠껀지,
 # data_size :주식코드 몇개에 대한 데이터를 만들껀지
 # train list와 label list를 반환
@@ -109,14 +144,18 @@ def getInfoLabelto2DArray(cur, info, date_size, data_size = 0, scaler = False, u
 
         for i in range(0, len(dataset) - date_size):
             _x = dataset[i:i + date_size]
-            _y = ratio[i + date_size: i + date_size + 1 ].values
+
+            if(bLevel):
+                _y = getLevel(ratio[j + date_size: j + date_size + 1].values)
+            else:
+                _y = ratio[i + date_size: i + date_size + 1 ].values
             # print(i + seq_length+predict_day)
             data.append(_x)
             label.append(_y)
 
     return np.array(data), np.array(label)
 
-def getFinanceInfoLabelto2DArray(cur, info, date_size, data_size=0, scaler=False, unit = 'DAY'):
+def getFinanceInfoLabelto2DArray(cur, info, date_size, data_size=0, scaler=False, unit = 'DAY', bLevel = False):
     # data : LoadStockInfo 반환값, date_size : 몇 일씩 뭉칠껀지,
     # data_size :주식코드 몇개에 대한 데이터를 만들껀지
     # train list와 label list를 반환
@@ -160,15 +199,19 @@ def getFinanceInfoLabelto2DArray(cur, info, date_size, data_size=0, scaler=False
             dataset = MinMaxScaler(dataset)
 
         for i in range(0, len(dataset) - date_size):
+
             _x = dataset[i:i + date_size]
-            _y = ratio[i + date_size: i + date_size + 1].values
+            if(bLevel):
+                _y = getLevel(ratio[j + date_size: j + date_size + 1].values)
+            else:
+                _y = ratio[i + date_size: i + date_size + 1].values
             # print(i + seq_length+predict_day)
             data.append(_x)
             label.append(_y)
 
     return np.array(data), np.array(label)
 
-def getFinanceInfoLabelto3DArray(cur, info, date_size, data_size=0, scaler=False, unit = 'DAY'):
+def getFinanceInfoLabelto3DArray(cur, info, date_size, data_size=0, scaler=False, unit = 'DAY', bLevel = False):
     # unit = 'WEEK', 'MONTH', 'DAY'
 
     rnd = []
@@ -210,8 +253,11 @@ def getFinanceInfoLabelto3DArray(cur, info, date_size, data_size=0, scaler=False
 
         for j in range(0, len(dataset) - date_size):
             _x = dataset[j:j + date_size]
-            _y = ratio[j + date_size: j + date_size + 1 ].values
 
+            if(bLevel):
+                _y = getLevel(ratio[j + date_size: j + date_size + 1].values)
+            else:
+                _y = ratio[j + date_size: j + date_size + 1].values
             #reshape
             _x = _x.reshape((1, _x.shape[0], _x.shape[1]))
 

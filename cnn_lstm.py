@@ -1,6 +1,7 @@
 import UtilStock
 import datapreprocess
 import pymssql as mssql
+import keras
 from keras.models import Sequential
 from keras.layers import Input, Flatten, Dense, LSTM, Conv1D, Conv2D, TimeDistributed, Dropout, ConvLSTM2D, BatchNormalization, Conv3D
 from keras.layers import LeakyReLU
@@ -9,23 +10,27 @@ import math
 from sklearn.metrics import mean_squared_error
 import matplotlib.pyplot as plt
 from keras.callbacks import ModelCheckpoint
+
 from keras.callbacks import EarlyStopping
 from keras.models import load_model
 import os
 
+num_classes = 5
 
 #data params
 train_ratio = 0.7
 feature_num = 19
-sample_size = 1000
+sample_size = 100
 date_size = 5
+
+CATEGORICAL = True
 
 #model save path
 MODEL_SAVE_FOLDER_PATH = './model/'
 MODEL_NAME = 'LSTM'
 
 #Use get ~to2DArray
-def Load_Lstm_Model(data , label):
+def Load_Lstm_Model():
 
     model = Sequential()
     model.add(LSTM(50, return_sequences=True, input_shape=(date_size, feature_num)))
@@ -33,14 +38,17 @@ def Load_Lstm_Model(data , label):
     model.add(Dropout(0, 2))
     model.add(Dense(128))
     model.add(LeakyReLU(alpha=0.2))
-    model.add(Dense(1, activation='linear'))
-    model.compile(loss='mse', optimizer='rmsprop', metrics=['acc'])
+    if CATEGORICAL:
+        model.add(Dense(num_classes, activation='softmax'))
+    else:
+        model.add(Dense(1, activation='linear'))
+
 
     return model
 
 
 #Use get ~to3DArray
-def Load_Conv1D_Lstm_Model(data,label):
+def Load_Conv1D_Lstm_Model():
 
     model = Sequential()
     model.add(Conv1D(filters=32,
@@ -56,14 +64,16 @@ def Load_Conv1D_Lstm_Model(data,label):
     model.add(Dropout(0, 2))
     model.add(Dense(128))
     model.add(LeakyReLU(alpha=0.2))
-    model.add(Dense(1, activation='linear'))
-    model.compile(loss='mse', optimizer='rmsprop', metrics=['acc'])
+    if CATEGORICAL:
+        model.add(Dense(num_classes, activation='softmax'))
+    else:
+        model.add(Dense(1, activation='linear'))
 
     return model
 
 #Use get ~to3DArray
-def Load_Deep_Conv1D_Lstm_Model(data,label):
-
+def Load_Deep_Conv1D_Lstm_Model():
+    print('You must Use Large Dataset!!!!!!!!!')
     model = Sequential()
     model.add(Conv1D(filters=32,
                kernel_size=1,
@@ -96,13 +106,15 @@ def Load_Deep_Conv1D_Lstm_Model(data,label):
     model.add(Dense(128))
     model.add(LeakyReLU(alpha=0.2))
     model.add(Dense(64, activation='linear'))
-    model.add(Dense(1, activation='linear'))
-    model.compile(loss='mse', optimizer='rmsprop', metrics=['acc'])
+    if CATEGORICAL:
+        model.add(Dense(num_classes, activation='softmax'))
+    else:
+        model.add(Dense(1, activation='linear'))
 
     return model
 
 #Use get~to4DArray
-def Load_Conv2DTD_Lstm_Model(data,label):
+def Load_Conv2DTD_Lstm_Model():
 
     model = Sequential()
     model.add(TimeDistributed(Conv2D(32, (2, 2), padding='same'), input_shape=(None, 3, 6, 1)))
@@ -116,9 +128,11 @@ def Load_Conv2DTD_Lstm_Model(data,label):
     model.add(Dropout(0, 2))
     model.add(Dense(128))
     model.add(LeakyReLU(alpha=0.2))
-    model.add(Dense(1, activation='linear'))
-    model.compile(loss='mse', optimizer='rmsprop', metrics=['acc'])
 
+    if CATEGORICAL:
+        model.add(Dense(num_classes, activation='softmax'))
+    else:
+        model.add(Dense(1, activation='linear'))
     return  model
 
 #Use get~to4DArray
@@ -183,7 +197,6 @@ def train_Conv2DLstm(data, label):
     ax.legend()
     plt.show()
 
-
 def train_model(model,data,label):
 
     train_Data = data[0: int(len(data) * train_ratio)]
@@ -191,6 +204,10 @@ def train_model(model,data,label):
 
     test_Data = data[int(len(data) * train_ratio): len(data)]
     test_Label = label[int(len(data) * train_ratio): len(data)]
+
+    if CATEGORICAL:
+        train_Label = keras.utils.to_categorical(train_Label, num_classes)
+        test_Label = keras.utils.to_categorical(test_Label, num_classes)
 
     if not os.path.exists(MODEL_SAVE_FOLDER_PATH):
         os.mkdir(MODEL_SAVE_FOLDER_PATH)
@@ -200,7 +217,8 @@ def train_model(model,data,label):
     cb_checkpoint = ModelCheckpoint(filepath=model_path, monitor='val_loss',
                                     verbose=1, save_best_only=True)
 
-    cb_early_stopping = EarlyStopping(monitor='val_loss', patience=10)
+    #early stopping이 필요할 때만 사용할 것
+    #cb_early_stopping = EarlyStopping(monitor='val_loss', patience=10)
 
     print('Train...')
     model.fit(train_Data, train_Label,
@@ -208,18 +226,25 @@ def train_model(model,data,label):
               batch_size=32, verbose=2,
               shuffle=True,
               validation_data=(test_Data, test_Label),
-              callbacks=[cb_checkpoint, cb_early_stopping])
+              callbacks=[cb_checkpoint])
 
-    testPredict = model.predict(test_Data)
-    testScore = math.sqrt(mean_squared_error(test_Label, testPredict))
-    print('Train Score: %.2f RMSE' % testScore)
+    if CATEGORICAL:
+        score = model.evaluate(test_Data, test_Label, verbose=0)
+        print('Test loss:', score[0])
+        print('Test accuracy:', score[1])
 
-    fig = plt.figure(facecolor='white', figsize=(10, 5))
-    ax = fig.add_subplot(111)
-    ax.plot(test_Label, label='True')
-    ax.plot(testPredict, label='Prediction')
-    ax.legend()
-    plt.show()
+    else:
+        testPredict = model.predict(test_Data)
+        testScore = math.sqrt(mean_squared_error(test_Label, testPredict))
+        print('Train Score: %.2f RMSE' % testScore)
+
+        fig = plt.figure(facecolor='white', figsize=(10, 5))
+        ax = fig.add_subplot(111)
+        ax.plot(test_Label, label='True')
+        ax.plot(testPredict, label='Prediction')
+        ax.legend()
+        plt.show()
+
 
 
 if __name__ == "__main__":
@@ -227,9 +252,14 @@ if __name__ == "__main__":
     connect = mssql.connect(server=server, user=user, password=password, database=database, charset='UTF8')
     cur = connect.cursor()
     info = UtilStock.LoadFinanceStockInfo(cur)
-    data, label = datapreprocess.getFinanceInfoLabelto3DArray(cur, info, data_size= sample_size, date_size= date_size, scaler=True, unit='WEEK')
+    data, label = datapreprocess.getFinanceInfoLabelto3DArray(cur, info, data_size= sample_size, date_size= date_size, scaler=True, unit='WEEK', bLevel= True)
     # model =load_model('LSTM01-0.0030.hd5')
-    model = Load_Deep_Conv1D_Lstm_Model(data,label)
+    model = Load_Lstm_Model()
+
+    if CATEGORICAL:
+        model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['acc'])
+    else:
+        model.compile(loss='mse', optimizer='rmsprop', metrics=['acc'])
     print('Model Build...')
     model.summary()
 
