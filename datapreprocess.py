@@ -83,7 +83,7 @@ def getInfoLabelto3DArray(cur, info, date_size, data_size = 0, scaler = False, u
             _x = dataset[j:j + date_size]
 
             if(bLevel):
-                _y = getLevel(ratio[j + date_size: j + date_size + 1].values)
+                _y = getLevel(ratio[j + date_size: j + date_size + 1].values, unit)
             else:
                 _y = ratio[j + date_size: j + date_size + 1 ].values
 
@@ -146,7 +146,7 @@ def getInfoLabelto2DArray(cur, info, date_size, data_size = 0, scaler = False, u
             _x = dataset[i:i + date_size]
 
             if(bLevel):
-                _y = getLevel(ratio[j + date_size: j + date_size + 1].values)
+                _y = getLevel(ratio[j + date_size: j + date_size + 1].values,unit)
             else:
                 _y = ratio[i + date_size: i + date_size + 1 ].values
             # print(i + seq_length+predict_day)
@@ -202,7 +202,7 @@ def getFinanceInfoLabelto2DArray(cur, info, date_size, data_size=0, scaler=False
 
             _x = dataset[i:i + date_size]
             if(bLevel):
-                _y = getLevel(ratio[j + date_size: j + date_size + 1].values)
+                _y = getLevel(ratio[j + date_size: j + date_size + 1].values,unit)
             else:
                 _y = ratio[i + date_size: i + date_size + 1].values
             # print(i + seq_length+predict_day)
@@ -255,7 +255,7 @@ def getFinanceInfoLabelto3DArray(cur, info, date_size, data_size=0, scaler=False
             _x = dataset[j:j + date_size]
 
             if(bLevel):
-                _y = getLevel(ratio[j + date_size: j + date_size + 1].values)
+                _y = getLevel(ratio[j + date_size: j + date_size + 1].values,unit)
             else:
                 _y = ratio[j + date_size: j + date_size + 1].values
             #reshape

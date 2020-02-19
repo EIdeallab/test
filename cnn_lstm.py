@@ -10,24 +10,34 @@ import math
 from sklearn.metrics import mean_squared_error
 import matplotlib.pyplot as plt
 from keras.callbacks import ModelCheckpoint
-
-from keras.callbacks import EarlyStopping
-from keras.models import load_model
 import os
 
+#optional
+from keras.callbacks import EarlyStopping
+from keras.models import load_model
+
+
+
+#################################################
+#### Do it here
+
+#레벨 수
 num_classes = 5
+CATEGORICAL = False
 
 #data params
 train_ratio = 0.7
 feature_num = 19
 sample_size = 100
 date_size = 5
-
-CATEGORICAL = True
+UNIT = 'WEEK'
+SCALER = True
 
 #model save path
 MODEL_SAVE_FOLDER_PATH = './model/'
-MODEL_NAME = 'LSTM'
+MODEL_NAME = 'LSTM'    # choose LSTM /  CONV1D_LSTM / DEEP_CONV1D_LSTM /  CONV2DTD_LSTM
+
+#############################################
 
 #Use get ~to2DArray
 def Load_Lstm_Model():
@@ -252,9 +262,20 @@ if __name__ == "__main__":
     connect = mssql.connect(server=server, user=user, password=password, database=database, charset='UTF8')
     cur = connect.cursor()
     info = UtilStock.LoadFinanceStockInfo(cur)
-    data, label = datapreprocess.getFinanceInfoLabelto3DArray(cur, info, data_size= sample_size, date_size= date_size, scaler=True, unit='WEEK', bLevel= True)
+    data, label = datapreprocess.getFinanceInfoLabelto3DArray(cur, info, data_size= sample_size, date_size= date_size, scaler=SCALER, unit= UNIT, bLevel= CATEGORICAL)
     # model =load_model('LSTM01-0.0030.hd5')
-    model = Load_Lstm_Model()
+
+    # LSTM /  CONV1D_LSTM / DEEP_CONV1D_LSTM / CONV2DTD_LSTM
+    if MODEL_NAME == 'LSTM':
+        model = Load_Lstm_Model()
+    elif MODEL_NAME == 'CONV1D_LSTM':
+        model = Load_Conv1D_Lstm_Model()
+    elif MODEL_NAME == 'DEEP_CONV1D_LSTM':
+        model =  Load_Deep_Conv1D_Lstm_Model()
+    elif MODEL_NAME == 'CONV2DTD_LSTM':
+        model = Load_Conv2DTD_Lstm_Model()
+    else:
+        print('Is Not Exist Model')
 
     if CATEGORICAL:
         model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['acc'])
