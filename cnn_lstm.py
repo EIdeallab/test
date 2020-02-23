@@ -21,23 +21,35 @@ from keras.models import load_model
 #################################################
 #### Do it here
 
-#레벨 수
-num_classes = 5
-CATEGORICAL = False
-
 #data params
 train_ratio = 0.7
 feature_num = 19
 sample_size = 100
 date_size = 5
-UNIT = 'WEEK'
+UNIT = 'DAY'
 SCALER = True
+CATEGORICAL = True
+
+#train params
+train_epochs = 300
 
 #model save path
 MODEL_SAVE_FOLDER_PATH = './model/'
 MODEL_NAME = 'LSTM'    # choose LSTM /  CONV1D_LSTM / DEEP_CONV1D_LSTM /  CONV2DTD_LSTM
 
 #############################################
+
+'''
+if UNIT == 'DAY':
+    num_classes = 12
+elif UNIT == 'WEEK':
+    num_classes = 14
+'''
+
+if UNIT == 'DAY':
+    num_classes = 4
+elif UNIT == 'WEEK':
+    num_classes = 4
 
 #Use get ~to2DArray
 def Load_Lstm_Model():
@@ -232,7 +244,7 @@ def train_model(model,data,label):
 
     print('Train...')
     model.fit(train_Data, train_Label,
-              epochs=100,
+              epochs=train_epochs,
               batch_size=32, verbose=2,
               shuffle=True,
               validation_data=(test_Data, test_Label),
@@ -262,17 +274,25 @@ if __name__ == "__main__":
     connect = mssql.connect(server=server, user=user, password=password, database=database, charset='UTF8')
     cur = connect.cursor()
     info = UtilStock.LoadFinanceStockInfo(cur)
-    data, label = datapreprocess.getFinanceInfoLabelto3DArray(cur, info, data_size= sample_size, date_size= date_size, scaler=SCALER, unit= UNIT, bLevel= CATEGORICAL)
-    # model =load_model('LSTM01-0.0030.hd5')
 
     # LSTM /  CONV1D_LSTM / DEEP_CONV1D_LSTM / CONV2DTD_LSTM
     if MODEL_NAME == 'LSTM':
+        data, label = datapreprocess.getFinanceInfoLabelto2DArray(cur, info, data_size=sample_size, date_size=date_size,
+                                                                  scaler=SCALER, unit=UNIT, bLevel=CATEGORICAL)
+
         model = Load_Lstm_Model()
     elif MODEL_NAME == 'CONV1D_LSTM':
+        data, label = datapreprocess.getFinanceInfoLabelto3DArray(cur, info, data_size=sample_size, date_size=date_size,
+                                                                  scaler=SCALER, unit=UNIT, bLevel=CATEGORICAL)
         model = Load_Conv1D_Lstm_Model()
     elif MODEL_NAME == 'DEEP_CONV1D_LSTM':
+        data, label = datapreprocess.getFinanceInfoLabelto3DArray(cur, info, data_size=sample_size, date_size=date_size,
+                                                                  scaler=SCALER, unit=UNIT, bLevel=CATEGORICAL)
         model =  Load_Deep_Conv1D_Lstm_Model()
     elif MODEL_NAME == 'CONV2DTD_LSTM':
+
+        data, label = datapreprocess.getFinanceInfoLabelto4DArray(cur, info, data_size=sample_size, date_size=date_size,
+                                                                  scaler=SCALER, unit=UNIT, bLevel=CATEGORICAL)
         model = Load_Conv2DTD_Lstm_Model()
     else:
         print('Is Not Exist Model')

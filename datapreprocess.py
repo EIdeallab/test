@@ -5,33 +5,93 @@ import numpy as np
 import pandas as pd
 
 
-def getLevel(values, unit = 'DAY'):
+def getLevel(values,unit = 'DAY'):
+
+    #12levels
+    '''
     if (unit == 'DAY'):
         if (values < 0.9):
             _y = [0]
-        elif (values >= 0.9) and (values < 0.95):
+        elif (values >= 0.9) and (values < 0.92):
             _y = [1]
-        elif (values >= 0.95) and (values < 1.05):
+        elif (values >= 0.92) and (values < 0.94):
             _y = [2]
-        elif (values >= 1.05) and (values < 1.1):
+        elif (values >= 0.94) and (values < 0.96):
             _y = [3]
-        elif (values >= 1.1):
+        elif (values >= 0.96) and (values < 0.98):
             _y = [4]
+        elif (values >= 0.98) and (values < 1):
+            _y = [5]
+        elif (values >= 1) and (values < 1.02):
+            _y = [6]
+        elif (values >= 1.02) and (values < 1.04):
+            _y = [7]
+        elif (values >= 1.04) and (values < 1.06):
+            _y = [8]
+        elif (values >= 1.06) and (values < 1.08):
+            _y = [9]
+        elif (values >= 1.08) and (values < 1.1):
+            _y = [10]
+        elif (values >= 1.1):
+            _y = [11]
 
     elif (unit == 'WEEK'):
         if (values < 0.7):
             _y = [0]
-        elif (values >= 0.7) and (values < 0.9):
+        elif (values >= 0.7) and (values < 0.75):
             _y = [1]
-        elif (values >= 0.9) and (values < 1.1):
+        elif (values >= 0.75) and (values < 0.8):
             _y = [2]
-        elif (values >= 1.1) and (values < 1.3):
+        elif (values >= 0.8) and (values < 0.85):
             _y = [3]
-        elif (values >= 1.3):
+        elif (values >= 0.85) and (values < 0.9):
             _y = [4]
+        elif (values >= 0.9) and (values < 0.95):
+            _y = [5]
+        elif (values >= 0.95) and (values < 1):
+            _y = [6]
+        elif (values >= 1) and (values < 1.05):
+            _y = [7]
+        elif (values >= 1.05) and (values < 1.1):
+            _y = [8]
+        elif (values >= 1.1) and (values < 1.15):
+            _y = [9]
+        elif (values >= 1.15) and (values < 1.2):
+            _y = [10]
+        elif (values >= 1.2) and (values < 1.25):
+            _y = [11]
+        elif (values >= 1.25) and (values < 1.3):
+            _y = [12]
+        elif (values >= 1.3):
+            _y = [13]
 
     elif (unit == 'MONTH'):
         print('Not yet :) ')
+    '''
+
+    if (unit == 'DAY'):
+        if (values < 0.98):
+            _y = [0]
+        elif (values >= 0.98) and (values < 1):
+            _y = [1]
+        elif (values >= 1) and (values < 1.02):
+            _y = [2]
+        elif (values >= 1.02):
+            _y = [3]
+
+    elif (unit == 'WEEK'):
+        if (values < 0.95):
+            _y = [0]
+        elif (values >= 0.95) and (values < 1):
+            _y = [1]
+        elif (values >= 1) and (values < 1.05):
+            _y = [2]
+        elif (values >= 1.05):
+            _y = [3]
+
+    elif (unit == 'MONTH'):
+        print('Not yet :) ')
+
 
     return _y
 
@@ -198,13 +258,13 @@ def getFinanceInfoLabelto2DArray(cur, info, date_size, data_size=0, scaler=False
         if (scaler == True):
             dataset = MinMaxScaler(dataset)
 
-        for i in range(0, len(dataset) - date_size):
+        for j in range(0, len(dataset) - date_size):
 
-            _x = dataset[i:i + date_size]
+            _x = dataset[j:j + date_size]
             if(bLevel):
-                _y = getLevel(ratio[j + date_size: j + date_size + 1].values,unit)
+                _y = getLevel(ratio[j + date_size: j + date_size + 1].values, unit)
             else:
-                _y = ratio[i + date_size: i + date_size + 1].values
+                _y = ratio[j + date_size: j + date_size + 1].values
             # print(i + seq_length+predict_day)
             data.append(_x)
             label.append(_y)
