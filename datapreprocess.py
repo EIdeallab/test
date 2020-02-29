@@ -69,6 +69,9 @@ def getLevel(values,unit = 'DAY'):
         print('Not yet :) ')
     '''
 
+
+    #4levels
+    '''
     if (unit == 'DAY'):
         if (values < 0.98):
             _y = [0]
@@ -91,7 +94,23 @@ def getLevel(values,unit = 'DAY'):
 
     elif (unit == 'MONTH'):
         print('Not yet :) ')
+    '''
 
+
+    if (unit == 'DAY'):
+        if (values < 1):
+            _y = [0]
+        elif (values >= 1):
+            _y = [1]
+
+    elif (unit == 'WEEK'):
+        if (values < 1):
+            _y = [0]
+        elif (values >= 1):
+            _y = [1]
+
+    elif (unit == 'MONTH'):
+        print('Not yet :) ')
 
     return _y
 
@@ -106,6 +125,8 @@ def getInfoLabelto3DArray(cur, info, date_size, data_size = 0, scaler = False, u
 #주의 : list가 아닌 ndarray임
 # unit = 'WEEK', 'MONTH', 'DAY'
     rnd = []
+    data =[]
+    label = []
     if(data_size == 0):
         data_size = len(info)
 
@@ -150,15 +171,10 @@ def getInfoLabelto3DArray(cur, info, date_size, data_size = 0, scaler = False, u
             #reshape
             _x = _x.reshape((1, _x.shape[0], _x.shape[1]))
 
-            #첫 루프만
-            if(i == 0 and j == 0):
-                data  = _x
-                label = _y
-            else:
-                data = np.concatenate([data,_x], 0)
-                label = np.concatenate([label,_y])
+            data.append(_x[0].tolist())
+            label.append(_y[0])
 
-    return data, label
+    return np.array(data), np.array(label)
 
 def getInfoLabelto2DArray(cur, info, date_size, data_size = 0, scaler = False, unit = 'DAY', bLevel = False):
 # data : LoadStockInfo 반환값, date_size : 몇 일씩 뭉칠껀지,
@@ -275,6 +291,8 @@ def getFinanceInfoLabelto3DArray(cur, info, date_size, data_size=0, scaler=False
     # unit = 'WEEK', 'MONTH', 'DAY'
 
     rnd = []
+    data = []
+    label = []
 
     if (data_size == 0):
         data_size = len(info)
@@ -300,7 +318,6 @@ def getFinanceInfoLabelto3DArray(cur, info, date_size, data_size=0, scaler=False
         elif (unit == 'MONTH'):
             print('Not yet :) ')
             break
-
 
         price.drop('DATE', axis=1, inplace=True)  # 날짜 제거
         price = price.dropna()  # NONE값 가진 행 제거
@@ -321,19 +338,17 @@ def getFinanceInfoLabelto3DArray(cur, info, date_size, data_size=0, scaler=False
             #reshape
             _x = _x.reshape((1, _x.shape[0], _x.shape[1]))
 
-            #첫 루프만
-            if(i == 0 and j == 0):
-                data  = _x
-                label = _y
-            else:
-                data = np.concatenate([data,_x], 0)
-                label = np.concatenate([label,_y])
-    return data, label
+            data.append(_x[0].tolist())
+            label.append(_y[0])
 
-def getFinanceInfoLabelto4DArray(cur, info, date_size, data_size=0, scaler=False, unit = 'DAY', labelunit = False):
+    return np.array(data), np.array(label)
+
+def getFinanceInfoLabelto4DArray(cur, info, date_size, data_size=0, scaler=False, unit = 'DAY', labelunit = False,  bLevel = False):
     # unit = 'WEEK', 'MONTH', 'DAY'
 
     rnd = []
+    data = []
+    label = []
 
     if (data_size == 0):
         data_size = len(info)
@@ -358,7 +373,6 @@ def getFinanceInfoLabelto4DArray(cur, info, date_size, data_size=0, scaler=False
         elif (unit == 'MONTH'):
             print('Not yet :) ')
             break
-
 
         price.drop('DATE', axis=1, inplace=True)  # 날짜 제거
         price = price.dropna()  # NONE값 가진 행 제거
@@ -380,17 +394,16 @@ def getFinanceInfoLabelto4DArray(cur, info, date_size, data_size=0, scaler=False
 
             else:
                 _x = dataset[j:j + date_size]
-                _y = ratio[j + date_size: j + date_size + 1].values
                 _x = _x.reshape((1, _x.shape[0], 3, 6, 1))  ########하드코딩
+                if(bLevel):
+                    _y = getLevel(ratio[j + date_size: j + date_size + 1].values, unit)
+                else:
+                    _y = ratio[j + date_size: j + date_size + 1].values
 
-            #첫 루프만
-            if(i == 0 and j == 0):
-                data  = _x
-                label = _y
-            else:
-                data = np.concatenate([data,_x], 0)
-                label = np.concatenate([label,_y])
-    return data, label
+            data.append(_x[0].tolist())
+            label.append(_y[0])
+
+    return np.array(data), np.array(label)
 
 #1DArray수정 필요
 def getInfoLabelto1Dlist(cur, info, data_size = 0, scaler = False, unit = 'DAY'):
