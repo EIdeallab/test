@@ -3,7 +3,7 @@ import datapreprocess
 import pymssql as mssql
 import keras
 from keras.models import Sequential
-from keras.layers import Input, Flatten, Dense, LSTM, Conv1D, Conv2D, TimeDistributed, Dropout, ConvLSTM2D, BatchNormalization, Conv3D
+from keras.layers import Input, Flatten, Dense, LSTM, Conv1D, Conv2D, TimeDistributed, Dropout, ConvLSTM2D, BatchNormalization, Conv3D, GlobalAveragePooling2D
 from keras.layers import LeakyReLU
 import numpy as np
 import math
@@ -11,12 +11,11 @@ from sklearn.metrics import mean_squared_error
 import matplotlib.pyplot as plt
 from keras.callbacks import ModelCheckpoint
 import os
+import keras.applications.densenet as DenseNet
 
 #optional
 from keras.callbacks import EarlyStopping
 from keras.models import load_model
-
-
 
 #################################################
 #### Do it here
@@ -31,11 +30,11 @@ SCALER = True
 CATEGORICAL = True
 
 #train params
-train_epochs = 300
+train_epochs = 500
 
 #model save path
 MODEL_SAVE_FOLDER_PATH = './model/'
-MODEL_NAME = 'LSTM'    # choose LSTM /  CONV1D_LSTM / DEEP_CONV1D_LSTM /  CONV2DTD_LSTM
+MODEL_NAME = 'DENSE121_LSTM'    # choose LSTM /  CONV1D_LSTM / DEEP_CONV1D_LSTM /  CONV2DTD_LSTM / DENSE121_LSTM
 
 #############################################
 
@@ -47,9 +46,9 @@ elif UNIT == 'WEEK':
 '''
 
 if UNIT == 'DAY':
-    num_classes = 4
+    num_classes = 2
 elif UNIT == 'WEEK':
-    num_classes = 4
+    num_classes = 2
 
 #Use get ~to2DArray
 def Load_Lstm_Model():
@@ -67,7 +66,6 @@ def Load_Lstm_Model():
 
 
     return model
-
 
 #Use get ~to3DArray
 def Load_Conv1D_Lstm_Model():
@@ -156,6 +154,29 @@ def Load_Conv2DTD_Lstm_Model():
     else:
         model.add(Dense(1, activation='linear'))
     return  model
+
+def Load_DenseNet121_LSTM():
+    base_model = DenseNet.DenseNet121(include_top=False, weights=None,  input_shape=(38, 38, date_size))
+
+    model = Sequential()
+    model.add(base_model)
+    model.add(Dense(512))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Dense(256))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Dense(128))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Dense(64, activation='linear'))
+    if CATEGORICAL:
+        model.add(GlobalAveragePooling2D(name='avg_pool'))
+        model.add(Dense(num_classes, activation='softmax'))
+    else:
+        model.add(Dense(1, activation='linear'))
+
+    model.compile(loss='mse', optimizer='rmsprop', metrics=['acc'])
+
+    return  model
+
 
 #Use get~to4DArray
 #reshape이 들어가기 때문에 옮기지 않음
@@ -289,11 +310,19 @@ if __name__ == "__main__":
         data, label = datapreprocess.getFinanceInfoLabelto3DArray(cur, info, data_size=sample_size, date_size=date_size,
                                                                   scaler=SCALER, unit=UNIT, bLevel=CATEGORICAL)
         model =  Load_Deep_Conv1D_Lstm_Model()
+
     elif MODEL_NAME == 'CONV2DTD_LSTM':
 
         data, label = datapreprocess.getFinanceInfoLabelto4DArray(cur, info, data_size=sample_size, date_size=date_size,
                                                                   scaler=SCALER, unit=UNIT, bLevel=CATEGORICAL)
         model = Load_Conv2DTD_Lstm_Model()
+
+    elif MODEL_NAME == 'DENSE121_LSTM':
+        data, label = datapreprocess.getFinanceInfotoImage(cur, info, data_size=sample_size, date_size=date_size,
+                                                                  scaler=SCALER, unit=UNIT, bLevel=CATEGORICAL)
+
+        model = Load_DenseNet121_LSTM()
+
     else:
         print('Is Not Exist Model')
 
