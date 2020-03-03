@@ -50,92 +50,91 @@ def makeDatatoImage(_dataset):
 def getLevel(values,unit = 'DAY'):
 
     #12levels
-    '''
-    if (unit == 'DAY'):
-        if (values < 0.9):
-            _y = [0]
-        elif (values >= 0.9) and (values < 0.92):
-            _y = [1]
-        elif (values >= 0.92) and (values < 0.94):
-            _y = [2]
-        elif (values >= 0.94) and (values < 0.96):
-            _y = [3]
-        elif (values >= 0.96) and (values < 0.98):
-            _y = [4]
-        elif (values >= 0.98) and (values < 1):
-            _y = [5]
-        elif (values >= 1) and (values < 1.02):
-            _y = [6]
-        elif (values >= 1.02) and (values < 1.04):
-            _y = [7]
-        elif (values >= 1.04) and (values < 1.06):
-            _y = [8]
-        elif (values >= 1.06) and (values < 1.08):
-            _y = [9]
-        elif (values >= 1.08) and (values < 1.1):
-            _y = [10]
-        elif (values >= 1.1):
-            _y = [11]
 
-    elif (unit == 'WEEK'):
-        if (values < 0.7):
-            _y = [0]
-        elif (values >= 0.7) and (values < 0.75):
-            _y = [1]
-        elif (values >= 0.75) and (values < 0.8):
-            _y = [2]
-        elif (values >= 0.8) and (values < 0.85):
-            _y = [3]
-        elif (values >= 0.85) and (values < 0.9):
-            _y = [4]
-        elif (values >= 0.9) and (values < 0.95):
-            _y = [5]
-        elif (values >= 0.95) and (values < 1):
-            _y = [6]
-        elif (values >= 1) and (values < 1.05):
-            _y = [7]
-        elif (values >= 1.05) and (values < 1.1):
-            _y = [8]
-        elif (values >= 1.1) and (values < 1.15):
-            _y = [9]
-        elif (values >= 1.15) and (values < 1.2):
-            _y = [10]
-        elif (values >= 1.2) and (values < 1.25):
-            _y = [11]
-        elif (values >= 1.25) and (values < 1.3):
-            _y = [12]
-        elif (values >= 1.3):
-            _y = [13]
+    # if (unit == 'DAY'):
+    #     if (values < 0.9):
+    #         _y = [0]
+    #     elif (values >= 0.9) and (values < 0.92):
+    #         _y = [1]
+    #     elif (values >= 0.92) and (values < 0.94):
+    #         _y = [2]
+    #     elif (values >= 0.94) and (values < 0.96):
+    #         _y = [3]
+    #     elif (values >= 0.96) and (values < 0.98):
+    #         _y = [4]
+    #     elif (values >= 0.98) and (values < 1):
+    #         _y = [5]
+    #     elif (values >= 1) and (values < 1.02):
+    #         _y = [6]
+    #     elif (values >= 1.02) and (values < 1.04):
+    #         _y = [7]
+    #     elif (values >= 1.04) and (values < 1.06):
+    #         _y = [8]
+    #     elif (values >= 1.06) and (values < 1.08):
+    #         _y = [9]
+    #     elif (values >= 1.08) and (values < 1.1):
+    #         _y = [10]
+    #     elif (values >= 1.1):
+    #         _y = [11]
+    #
+    # elif (unit == 'WEEK'):
+    #     if (values < 0.7):
+    #         _y = [0]
+    #     elif (values >= 0.7) and (values < 0.75):
+    #         _y = [1]
+    #     elif (values >= 0.75) and (values < 0.8):
+    #         _y = [2]
+    #     elif (values >= 0.8) and (values < 0.85):
+    #         _y = [3]
+    #     elif (values >= 0.85) and (values < 0.9):
+    #         _y = [4]
+    #     elif (values >= 0.9) and (values < 0.95):
+    #         _y = [5]
+    #     elif (values >= 0.95) and (values < 1):
+    #         _y = [6]
+    #     elif (values >= 1) and (values < 1.05):
+    #         _y = [7]
+    #     elif (values >= 1.05) and (values < 1.1):
+    #         _y = [8]
+    #     elif (values >= 1.1) and (values < 1.15):
+    #         _y = [9]
+    #     elif (values >= 1.15) and (values < 1.2):
+    #         _y = [10]
+    #     elif (values >= 1.2) and (values < 1.25):
+    #         _y = [11]
+    #     elif (values >= 1.25) and (values < 1.3):
+    #         _y = [12]
+    #     elif (values >= 1.3):
+    #         _y = [13]
+    #
+    # elif (unit == 'MONTH'):
+    #     print('Not yet :) ')
 
-    elif (unit == 'MONTH'):
-        print('Not yet :) ')
-    '''
 
     #4levels
-    '''
-    if (unit == 'DAY'):
-        if (values < 0.98):
-            _y = [0]
-        elif (values >= 0.98) and (values < 1):
-            _y = [1]
-        elif (values >= 1) and (values < 1.02):
-            _y = [2]
-        elif (values >= 1.02):
-            _y = [3]
 
-    elif (unit == 'WEEK'):
-        if (values < 0.95):
-            _y = [0]
-        elif (values >= 0.95) and (values < 1):
-            _y = [1]
-        elif (values >= 1) and (values < 1.05):
-            _y = [2]
-        elif (values >= 1.05):
-            _y = [3]
+    # if (unit == 'DAY'):
+    #     if (values < 0.98):
+    #         _y = [0]
+    #     elif (values >= 0.98) and (values < 1):
+    #         _y = [1]
+    #     elif (values >= 1) and (values < 1.02):
+    #         _y = [2]
+    #     elif (values >= 1.02):
+    #         _y = [3]
+    #
+    # elif (unit == 'WEEK'):
+    #     if (values < 0.95):
+    #         _y = [0]
+    #     elif (values >= 0.95) and (values < 1):
+    #         _y = [1]
+    #     elif (values >= 1) and (values < 1.05):
+    #         _y = [2]
+    #     elif (values >= 1.05):
+    #         _y = [3]
+    # elif (unit == 'MONTH'):
+    #     print('Not yet :) ')
 
-    elif (unit == 'MONTH'):
-        print('Not yet :) ')
-    '''
 
 
     if (unit == 'DAY'):
@@ -384,7 +383,7 @@ def getFinanceInfoLabelto3DArray(cur, info, date_size, data_size=0, scaler=False
 
     return np.array(data), np.array(label)
 
-def getFinanceInfoLabelto4DArray(cur, info, date_size, data_size=0, scaler=False, unit = 'DAY', labelunit = False,  bLevel = False):
+def getFinanceInfoLabelto4DArray(cur, info, date_size, data_size=0, scaler=False, unit = 'DAY', labelunit = False,  bLevel = False, bImage = False):
     # unit = 'WEEK', 'MONTH', 'DAY'
 
     rnd = []
@@ -419,7 +418,8 @@ def getFinanceInfoLabelto4DArray(cur, info, date_size, data_size=0, scaler=False
         price = price.dropna()  # NONE값 가진 행 제거
         ratio = price['CHANGE_RATIO']
         price.drop('CHANGE_RATIO', axis=1, inplace=True)  # y값 제거
-        price.drop('MARKET_CAP', axis=1, inplace=True) #임시
+        if not(bImage):
+            price.drop('MARKET_CAP', axis=1, inplace=True) #임시
         dataset = price.as_matrix()
 
         if (scaler == True):
@@ -435,7 +435,11 @@ def getFinanceInfoLabelto4DArray(cur, info, date_size, data_size=0, scaler=False
 
             else:
                 _x = dataset[j:j + date_size]
-                _x = _x.reshape((1, _x.shape[0], 3, 6, 1))  ########하드코딩
+                if(bImage):
+                    _x = makeDatatoImage(_x)
+                    _x = _x.reshape((1, _x.shape[0], 38, 38, 1))  ########하드코딩
+                else:
+                    _x = _x.reshape((1, _x.shape[0], 3, 6, 1))  ########하드코딩
                 if(bLevel):
                     _y = getLevel(ratio[j + date_size: j + date_size + 1].values, unit)
                 else:

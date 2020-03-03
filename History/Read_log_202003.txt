@@ -16,6 +16,17 @@
 수정 사항:
 -np.concate으로 인해 느려졌던 데이터 로드 개선
 
+날짜 : 2020.3.3
+내용 : 
+
+할일:
+- 모델 테스트 코드 작성 
+- STOCK_TRAINING_SET change ratio가 높은 값들이 있어 sql파일 수정하였음. 확인 부탁
+
+수정 사항:
+test코드를 위해 기존 cnn_lstm.py 모듈화 
+stock_model.py로 변경
+stock_train에서 학습 실행하면 됨
 
 
 
