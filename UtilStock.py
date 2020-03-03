@@ -31,6 +31,22 @@ def LoadFinanceStockInfo(cur):
 
     return Info
 
+#테마 연결 정보가 있는 EMBEDDING_SET 반환 함수
+def LoadThemeEmbeddingSet(cur):
+    sql = "SELECT * FROM THEME_EMBEDDING_SET"
+    print("sql:", sql)
+    cur.execute(sql)
+    info_col = ('BEF_THEME','AFT_THEME')
+    data = pd.DataFrame(cur.fetchall(),  columns = info_col )
+
+    sql = "SELECT COUNT(DISTINCT BEF_THEME) BEF_CNT, COUNT(DISTINCT AFT_THEME) AFT_CNT FROM THEME_EMBEDDING_SET"
+    print("sql:", sql)
+    cur.execute(sql)
+    info_col = ('BEF_CNT','AFT_CNT')
+    data_cnt = pd.DataFrame(cur.fetchall(),  columns = info_col )
+
+    return data, data_cnt
+
 #특정 주식 코드의 데이터 반환 함수, 날짜 오름차순
 def LoadStockPriceByCode(cur, StockCode):
     sql = "SEL_STOCK_PRICE " +StockCode
