@@ -101,7 +101,7 @@ class STOCK_MODEL:
         model.add(Conv1D(filters=32,
                          kernel_size=3,
                          strides=1,
-                         input_shape=(date_size, feature_num)))
+                         input_shape=(self.feature_num, self.date_size)))
         model.add(LeakyReLU(alpha=0.2))
         model.add(Conv1D(filters=64, kernel_size=3, strides=1))
         model.add(LeakyReLU(alpha=0.2))
@@ -123,21 +123,21 @@ class STOCK_MODEL:
         print('You must Use Large Dataset!!!!!!!!!')
         model = Sequential()
         model.add(Conv1D(filters=32,
-                         kernel_size=1,
+                         kernel_size=3,
                          strides=1,
-                         input_shape=(self.date_size, self.feature_num)))
+                         input_shape=(self.feature_num, self.date_size)))
         model.add(BatchNormalization())
         model.add(LeakyReLU(alpha=0.2))
-        model.add(Conv1D(filters=64, kernel_size=3, strides=1))
+        model.add(Conv1D(filters=64, kernel_size=1, strides=1))
         model.add(BatchNormalization())
         model.add(LeakyReLU(alpha=0.2))
-        model.add(Conv1D(filters=128, kernel_size=1, strides=1))
+        model.add(Conv1D(filters=128, kernel_size=3, strides=1))
         model.add(BatchNormalization())
         model.add(LeakyReLU(alpha=0.2))
-        model.add(Conv1D(filters=256, kernel_size=3, strides=1))
+        model.add(Conv1D(filters=256, kernel_size=1, strides=1))
         model.add(BatchNormalization())
         model.add(LeakyReLU(alpha=0.2))
-        model.add(Conv1D(filters=512, kernel_size=1, strides=1))
+        model.add(Conv1D(filters=512, kernel_size=3, strides=1))
         model.add(BatchNormalization())
         model.add(LeakyReLU(alpha=0.2))
         model.add(LSTM(128, return_sequences=True, activation='tanh'))
@@ -260,19 +260,19 @@ class STOCK_MODEL:
             data, label = datapreprocess.getFinanceInfoLabelto3DArray(cur, info, data_size=self.sample_size,
                                                                       date_size=self.date_size,
                                                                       scaler=self.SCALER, unit=self.UNIT, bLevel=self.CATEGORICAL)
-            model = self.stock_model.Load_Conv1D_Lstm_Model()
+            model = self.Load_Conv1D_Lstm_Model()
         elif self.MODEL_NAME == 'DEEP_CONV1D_LSTM':
             data, label = datapreprocess.getFinanceInfoLabelto3DArray(cur, info, data_size=self.sample_size,
                                                                       date_size=self.date_size,
                                                                       scaler=self.SCALER, unit=self.UNIT, bLevel=self.CATEGORICAL)
-            model = self.stock_model.Load_Deep_Conv1D_Lstm_Model()
+            model = self.Load_Deep_Conv1D_Lstm_Model()
 
         elif self.MODEL_NAME == 'CONV2DTD_LSTM':
 
             data, label = datapreprocess.getFinanceInfoLabelto4DArray(cur, info, data_size=self.sample_size,
                                                                       date_size=self.date_size,
                                                                       scaler=self.SCALER, unit=self.UNIT, bLevel=self.CATEGORICAL)
-            model = self.stock_model.Load_Conv2DTD_Lstm_Model()
+            model = self.Load_Conv2DTD_Lstm_Model()
 
         elif self.MODEL_NAME == 'CONV2DTD_LSTM_IMG':
 

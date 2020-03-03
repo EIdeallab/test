@@ -376,7 +376,7 @@ def getFinanceInfoLabelto3DArray(cur, info, date_size, data_size=0, scaler=False
             else:
                 _y = ratio[j + date_size: j + date_size + 1].values
             #reshape
-            _x = _x.reshape((1, _x.shape[0], _x.shape[1]))
+            _x = _x.reshape((1, _x.shape[1], _x.shape[0]))
 
             data.append(_x[0].tolist())
             label.append(_y[0])
