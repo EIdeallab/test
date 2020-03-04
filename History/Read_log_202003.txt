@@ -28,5 +28,14 @@ test코드를 위해 기존 cnn_lstm.py 모듈화
 stock_model.py로 변경
 stock_train에서 학습 실행하면 됨
 
+날짜 : 2020.3.4
+내용 : 
 
+할일:
+- 모델 테스트 코드 작성 
+- 데이터 오류 수정
+
+수정 사항:
+STOCK_TRAINING_SET 확인하여 수정 (week 데이터에도 반영되도록 수정)
+테마 임베딩 학습 파일 생성 - theme_embedding.py로 변경
 
