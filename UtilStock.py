@@ -31,21 +31,27 @@ def LoadFinanceStockInfo(cur):
 
     return Info
 
-#테마 연결 정보가 있는 EMBEDDING_SET 반환 함수
-def LoadThemeEmbeddingSet(cur):
-    sql = "SELECT * FROM THEME_EMBEDDING_SET"
+#주식 EMBEDDING_SET 반환 함수
+def LoadStockEmbeddingSet(cur):
+    sql = "SELECT * FROM STOCK_EMBEDDING_SET"
     print("sql:", sql)
     cur.execute(sql)
-    info_col = ('BEF_THEME','AFT_THEME')
+    info_col = ('BEF_STOCK','AFT_STOCK')
     data = pd.DataFrame(cur.fetchall(),  columns = info_col )
 
-    sql = "SELECT COUNT(DISTINCT BEF_THEME) BEF_CNT, COUNT(DISTINCT AFT_THEME) AFT_CNT FROM THEME_EMBEDDING_SET"
+    sql = "SELECT * FROM STOCK_FALSE_SET"
+    print("sql:", sql)
+    cur.execute(sql)
+    info_col = ('BEF_STOCK','AFT_STOCK')
+    false_data = pd.DataFrame(cur.fetchall(),  columns = info_col )
+
+    sql = "SELECT COUNT(DISTINCT BEF_STOCK) BEF_CNT, COUNT(DISTINCT AFT_STOCK) AFT_CNT FROM STOCK_EMBEDDING_SET"
     print("sql:", sql)
     cur.execute(sql)
     info_col = ('BEF_CNT','AFT_CNT')
     data_cnt = pd.DataFrame(cur.fetchall(),  columns = info_col )
 
-    return data, data_cnt
+    return data, false_data, data_cnt
 
 #특정 주식 코드의 데이터 반환 함수, 날짜 오름차순
 def LoadStockPriceByCode(cur, StockCode):
@@ -72,6 +78,30 @@ def LoadStockFinanceByCode(cur, StockCode):
 #특정 주식 코드의 재무재표 포함 반환 함수(주단위), 날짜 오름차순
 def LoadStockFinanceWeekByCode(cur, StockCode):
     sql = "SEL_STOCK_TRAINING_DATA_WEEK " + StockCode
+    print("sql:", sql)
+    cur.execute(sql)
+    price_col = (
+        'STOCK_CODE', 'AVERAGE', 'HIGHEST', 'LOWEST', 'VOLUME', 'CHANGE_RATIO', 
+        'MARKET_CAP', 'PBR', 'PBR2', 'PDR', 'PER', 'PCR_OP', 'PCR_IV', 'PCR_FI', 
+        'PSR', 'PFR', 'PXR', 'ROE', 'ROA', 'MARKET_RANK', 'DATE')
+    Info = pd.DataFrame(cur.fetchall(), columns =price_col )
+    return Info
+
+#특정 주식 코드의 재무재표 포함 테스트셋 반환 함수, 날짜 오름차순
+def LoadStockTestsetByCode(cur, stockcode, date):
+    sql = "SEL_STOCK_TEST_DATA " +stockcode + ',' + date
+    print("sql:", sql)
+    cur.execute(sql)
+    price_col = (
+        'STOCK_CODE', 'AVERAGE', 'HIGHEST', 'LOWEST', 'VOLUME', 'CHANGE_RATIO', 
+        'MARKET_CAP', 'PBR', 'PBR2', 'PDR', 'PER', 'PCR_OP', 'PCR_IV', 'PCR_FI', 
+        'PSR', 'PFR', 'PXR', 'ROE', 'ROA', 'MARKET_RANK', 'DATE')
+    Info = pd.DataFrame(cur.fetchall(), columns =price_col )
+    return Info
+
+#특정 주식 코드의 재무재표 포함 테스트셋 반환 함수(주단위), 날짜 오름차순
+def LoadStockTestsetWeekByCode(cur, stockcode, date):
+    sql = "SEL_STOCK_TEST_DATA_WEEK " + stockcode + ',' + date
     print("sql:", sql)
     cur.execute(sql)
     price_col = (
