@@ -33,7 +33,7 @@ def LoadFinanceStockInfo(cur):
 
 #주식 EMBEDDING_SET 반환 함수
 def LoadStockEmbeddingSet(cur):
-    sql = "SELECT * FROM STOCK_EMBEDDING_SET"
+    sql = "SELECT BEF_STOCK, AFT_STOCK FROM STOCK_EMBEDDING_SET ORDER BY BEF_STOCK, AFT_STOCK"
     print("sql:", sql)
     cur.execute(sql)
     info_col = ('BEF_STOCK','AFT_STOCK')
@@ -88,8 +88,8 @@ def LoadStockFinanceWeekByCode(cur, StockCode):
     return Info
 
 #특정 주식 코드의 재무재표 포함 테스트셋 반환 함수, 날짜 오름차순
-def LoadStockTestsetByCode(cur, stockcode, date):
-    sql = "SEL_STOCK_TEST_DATA " +stockcode + ',' + date
+def LoadStockTestsetByCode(cur, stockcode, date, date_cnt):
+    sql = "SEL_STOCK_TEST_DATA " +stockcode + ',' + date + ',' + date_cnt
     print("sql:", sql)
     cur.execute(sql)
     price_col = (
@@ -100,8 +100,8 @@ def LoadStockTestsetByCode(cur, stockcode, date):
     return Info
 
 #특정 주식 코드의 재무재표 포함 테스트셋 반환 함수(주단위), 날짜 오름차순
-def LoadStockTestsetWeekByCode(cur, stockcode, date):
-    sql = "SEL_STOCK_TEST_DATA_WEEK " + stockcode + ',' + date
+def LoadStockTestsetWeekByCode(cur, stockcode, date, week_cnt):
+    sql = "SEL_STOCK_TEST_DATA_WEEK " + stockcode + ',' + date + ',' + week_cnt
     print("sql:", sql)
     cur.execute(sql)
     price_col = (
