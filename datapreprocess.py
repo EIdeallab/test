@@ -155,11 +155,34 @@ def getLevel(values,unit = 'DAY'):
     return _y
 
 def MinMaxScaler(data):
-#정규화 함수
-    numerator = data - np.min(data, 0)
-    denominator = np.max(data, 0) - np.min(data, 0)
-    # noise term prevents the zero division
-    return numerator / (denominator + 1e-7)
+    #정규화 함수
+    ##기존
+    # numerator = data - np.min(data, 0)
+    # denominator = np.max(data, 0) - np.min(data, 0)
+    # # noise term prevents the zero division
+    # return numerator / (denominator + 1e-7)
+
+    # scaler_data = []
+    # for a in data:
+    #     b = [-np.log(-i) if i < 0 else np.log(i) for i in a]
+    #     scaler_data.append(b)
+    #
+    # numerator = scaler_data - np.min(scaler_data, 0)
+    # denominator = np.max(scaler_data, 0) - np.min(scaler_data, 0)
+    # # noise term prevents the zero division
+    # return numerator / (denominator + 1e-7)
+
+    scaler_data = []
+
+    for i in range(data.shape[1]):
+        data_tmp = data[:, i]
+        numerator = data_tmp - np.min(data_tmp, 0)
+        denominator = np.max(data_tmp, 0) - np.min(data_tmp, 0)
+        new_data = numerator / (denominator + 1e-7)
+        data[:, i] = new_data
+    return data
+
+
 
 def getInfoLabelto3DArray(cur, info, date_size, data_size = 0, scaler = False, unit = 'DAY', bLevel = False):
 #주의 : list가 아닌 ndarray임
@@ -194,7 +217,8 @@ def getInfoLabelto3DArray(cur, info, date_size, data_size = 0, scaler = False, u
         price.drop('DATE', axis=1, inplace=True) #날짜 제거
         price = price.dropna()  #NONE값 가진 행 제거
         ratio = price['CHANGE_RATIO']
-        price.drop('CHANGE_RATIO', axis=1, inplace=True)  # 날짜 제거
+        price.drop('CHANGE_RATIO', axis=1, inplace=True)
+        price.drop('STOCK_CODE', axis=1, inplace=True)
         dataset = price.as_matrix()
 
         if(scaler == True):
@@ -252,7 +276,8 @@ def getInfoLabelto2DArray(cur, info, date_size, data_size = 0, scaler = False, u
         price.drop('DATE', axis=1, inplace=True) #날짜 제거
         price = price.dropna()  #NONE값 가진 행 제거
         ratio = price['CHANGE_RATIO']
-        price.drop('CHANGE_RATIO', axis=1, inplace=True)  # 날짜 제거
+        price.drop('CHANGE_RATIO', axis=1, inplace=True)
+        price.drop('STOCK_CODE', axis=1, inplace=True)
         dataset = price.as_matrix()
 
         if(scaler == True):
@@ -309,6 +334,7 @@ def getFinanceInfoLabelto2DArray(cur, info, date_size, data_size=0, scaler=False
         price = price.apply(pd.to_numeric, downcast='float')
         ratio = price['CHANGE_RATIO']
         price.drop('CHANGE_RATIO', axis=1, inplace=True)  # y값 제거
+        price.drop('STOCK_CODE', axis=1, inplace=True)
         dataset = price.as_matrix()
 
         if (scaler == True):
@@ -363,6 +389,7 @@ def getFinanceInfoLabelto3DArray(cur, info, date_size, data_size=0, scaler=False
         price = price.dropna()  # NONE값 가진 행 제거
         ratio = price['CHANGE_RATIO']
         price.drop('CHANGE_RATIO', axis=1, inplace=True)  # y값 제거
+        price.drop('STOCK_CODE', axis=1, inplace=True)
         dataset = price.as_matrix()
 
         if (scaler == True):
@@ -376,7 +403,7 @@ def getFinanceInfoLabelto3DArray(cur, info, date_size, data_size=0, scaler=False
             else:
                 _y = ratio[j + date_size: j + date_size + 1].values
             #reshape
-            _x = _x.reshape((1, _x.shape[1], _x.shape[0]))
+            _x = _x.reshape((1, _x.shape[0], _x.shape[1]))
 
             data.append(_x[0].tolist())
             label.append(_y[0])
@@ -557,6 +584,60 @@ def getInfoLabelto1Dlist(cur, info, data_size = 0, scaler = False, unit = 'DAY')
         label.append(ratio)
 
     return data, label
+
+
+def getTestsetby3DArray(cur, info, today_date, date_size, data_size=0, scaler=True, unit = 'DAY'):
+    rnd = []
+    data = []
+    code_num = []
+
+    if (data_size == 0):
+        data_size = len(info)
+
+    rnd_num = random.randint(0 ,len(info))
+
+    #랜덤하게 갖고 오고 싶었음
+    for i in range(data_size):
+        while rnd_num in rnd :
+            rnd_num = random.randint(0, len(info) - 1)
+        rnd.append(rnd_num)
+
+    code = info['STOCK_CODE']
+    for i in range(data_size):
+
+        idx   = rnd[i]
+        if (unit == 'DAY'):
+            price = UtilStock.LoadStockTestsetByCode(cur, code.iloc[idx], today_date, date_size)
+        elif (unit == 'WEEK'):
+            price = UtilStock.LoadStockTestsetWeekByCode(cur, code.iloc[idx],today_date, date_size)
+        elif (unit == 'MONTH'):
+            print('Not yet :) ')
+            break
+
+        price.drop('DATE', axis=1, inplace=True)  # 날짜 제거
+        price = price.dropna()  # NONE값 가진 행 제거
+        ratio = price['CHANGE_RATIO']
+        price.drop('CHANGE_RATIO', axis=1, inplace=True)  # y값 제거
+        price.drop('STOCK_CODE', axis=1, inplace=True)
+        dataset = price.as_matrix()
+
+        if(len(dataset) == 0):
+            continue
+
+        if (scaler == True):
+            dataset = MinMaxScaler(dataset)
+
+        _x = dataset[:]
+
+        if(_x.shape[0] != 5): ##5일치로 하드코딩
+            continue
+
+        _x = _x.reshape((1, _x.shape[0], _x.shape[1]))
+        data.append(_x[0].tolist())
+        code_num.append([code.iloc[idx]])
+
+    return np.array(data),code_num
+
 
 #연습장
 if __name__ == "__main__":

@@ -89,7 +89,7 @@ def LoadStockFinanceWeekByCode(cur, StockCode):
 
 #특정 주식 코드의 재무재표 포함 테스트셋 반환 함수, 날짜 오름차순
 def LoadStockTestsetByCode(cur, stockcode, date, date_cnt):
-    sql = "SEL_STOCK_TEST_DATA " +stockcode + ',' + date + ',' + date_cnt
+    sql = "SEL_STOCK_TEST_DATA " +stockcode + ",'" + date + "'," + str(date_cnt)
     print("sql:", sql)
     cur.execute(sql)
     price_col = (
@@ -101,7 +101,7 @@ def LoadStockTestsetByCode(cur, stockcode, date, date_cnt):
 
 #특정 주식 코드의 재무재표 포함 테스트셋 반환 함수(주단위), 날짜 오름차순
 def LoadStockTestsetWeekByCode(cur, stockcode, date, week_cnt):
-    sql = "SEL_STOCK_TEST_DATA_WEEK " + stockcode + ',' + date + ',' + week_cnt
+    sql = "SEL_STOCK_TEST_DATA_WEEK " + stockcode + ",'" + date + "'," + str(week_cnt)
     print("sql:", sql)
     cur.execute(sql)
     price_col = (
