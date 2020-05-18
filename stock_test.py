@@ -13,7 +13,7 @@ if __name__ == "__main__":
 
     #str_date = str(year) + '-' + str(month) + '-' + str(day)
     #for debug
-    str_date = '2020-3-30'
+    str_date = '2020-4-06'
     date_size = 5
 
     print(str_date)
@@ -52,8 +52,8 @@ if __name__ == "__main__":
 
     for idx in predict_idx:
         if ((CATEGORICAL == True) and (predict[idx] > 6)) or ((CATEGORICAL == False) and (predict[idx] > 1)):
-            predict_str = '추천 종목은' + str(code[idx]) + '입니다. 아마도' + str(predict[idx]) + '만큼 변동할것 입니다.'
-            file.write(code[idx][0] + str(predict[idx]) + '\n')
+            predict_str = '추천 종목은' + code[idx][0].strip() + '입니다. 아마도 ' + str(predict[idx]) + '만큼 변동할것 입니다.'
+            file.write(code[idx][0].strip() + ' ' + str(predict[idx]) + '\n')
             print(predict_str)
 
     file.close()

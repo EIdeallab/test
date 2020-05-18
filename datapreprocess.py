@@ -287,7 +287,7 @@ def getInfoLabelto2DArray(cur, info, date_size, data_size = 0, scaler = False, u
             _x = dataset[i:i + date_size]
 
             if(bLevel):
-                _y = getLevel(ratio[j + date_size: j + date_size + 1].values, unit)
+                _y = getLevel(ratio[i + date_size: i + date_size + 1].values, unit)
             else:
                 _y = ratio[i + date_size: i + date_size + 1 ].values
             # print(i + seq_length+predict_day)

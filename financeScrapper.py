@@ -53,8 +53,8 @@ def financeScrap():
 
             # 데이터프레임 가공
             df = UtilStock.ProcessFinance(fn_cells)
+
             
-            updated = False
             for name, val in df.iteritems():
             # 얻은 데이터가 DB에 없는 경우 업로드
                 sql = "DECLARE @rtn int "
