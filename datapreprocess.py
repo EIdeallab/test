@@ -619,7 +619,7 @@ def getTestsetby3DArray(cur, info, today_date, date_size, data_size=0, scaler=Tr
         ratio = price['CHANGE_RATIO']
         price.drop('CHANGE_RATIO', axis=1, inplace=True)  # y값 제거
         price.drop('STOCK_CODE', axis=1, inplace=True)
-        dataset = price.as_matrix()
+        dataset = price.to_numpy()
 
         if(len(dataset) == 0):
             continue

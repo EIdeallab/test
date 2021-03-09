@@ -3,6 +3,8 @@ import pymssql as mssql
 import time
 import configparser
 import UtilStock
+from selenium import webdriver
+from bs4 import BeautifulSoup
 
 def stockPriceScrap():
     # mssql 서버 접속
@@ -22,6 +24,7 @@ def stockPriceScrap():
         print("sql:", sql)
         cur.execute(sql)
         name_df =  pd.DataFrame(cur.fetchall())
+        driver = webdriver.Chrome()
 
         # 네이버 주식 데이터 가져오기
         data = [item[0] for item in name_df.values]
@@ -29,7 +32,7 @@ def stockPriceScrap():
             url = 'http://finance.naver.com/item/sise_day.nhn?code={code}'.format(code=stockCode)
             url = url.strip()
             print("Load Stock info : ", url)
-        
+
             # DB에 저장되지 않은 최신 일자 데이터 가져오기
             for page in range(1, 32):
                 
@@ -38,7 +41,18 @@ def stockPriceScrap():
 
                 # Url에서 데이터 수집
                 pg_url = '{url}&page={page}'.format(url=url, page=page)
-                price_df = price_df.append(pd.read_html(pg_url, header=0)[0], ignore_index=True) 
+                driver.get(pg_url)
+                try:
+                    driver.find_element_by_tag_name("h4").click()
+                except:
+                    continue
+
+                html = driver.page_source
+                soup = BeautifulSoup(html,'lxml')
+
+                # price_df = price_df.append(pd.read_html(pg_url, header=0)[0], ignore_index=True)
+                price_df = price_df.append(pd.read_html(str(soup.find("table")), header=0)[0], ignore_index=True)
+
                 price_df['CODE'] = stockCode
                     
                 # df.dropna()를 이용해 결측값 있는 행 제거 
