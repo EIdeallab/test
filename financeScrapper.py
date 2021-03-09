@@ -23,6 +23,7 @@ def financeScrap():
         conn.commit()
         
         # Sql 서버에서 주식 종목 리스트 로드
+
         sql = "SELECT STOCK_CODE FROM STOCK_INFO;"
         print("sql:", sql)
         cur.execute(sql)
@@ -46,7 +47,7 @@ def financeScrap():
             except : continue
 
             html = driver.page_source
-            soup = BeautifulSoup(html)
+            soup = BeautifulSoup(html, 'lxml')
 
             # 주요재무정보 테이블 가져오기(분기별)
             fn_cells = soup.select('table.gHead01.all-width')
